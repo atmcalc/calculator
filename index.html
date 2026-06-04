@@ -1,42 +1,731 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Привет, мир!</title>
+    <title>Solar Energy Calculator — Розрахунок СЕС</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            background: #F5F7FB;
+            color: #1E293B;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+        }
+        .app-header {
+            background: #FFFFFF;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 0.75rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .logo-area { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { font-size: 1.8rem; }
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, #F59E0B, #EA580C);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .lang-switch {
+            display: flex;
+            gap: 0.5rem;
+            background: #F1F5F9;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #64748B;
+            transition: all 0.2s;
+        }
+        .lang-btn.active {
+            background: #F59E0B;
+            color: white;
+        }
+        .lang-btn:hover:not(.active) { background: #E2E8F0; }
+        
+        .nav-sections {
+            background: #FFFFFF;
+            padding: 0.5rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            border-bottom: 1px solid #E2E8F0;
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(8px);
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: #64748B;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover { background: #F1F5F9; color: #F59E0B; }
+        
+        .main-container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .section {
+            background: #FFFFFF;
+            border-radius: 1.5rem;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            scroll-margin-top: 110px;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #F59E0B;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-left: 4px solid #F59E0B;
+            padding-left: 1rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.2rem;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .input-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+        input, select {
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            color: #1E293B;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus { outline: none; border-color: #F59E0B; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
+        
+        .result-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-top: 1.5rem;
+        }
+        .stat-card {
+            background: #F8FAFC;
+            border-radius: 1rem;
+            padding: 1rem 1.2rem;
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+            border-left: 4px solid #F59E0B;
+        }
+        .stat-number { font-size: 1.5rem; font-weight: 800; color: #F59E0B; }
+        .stat-label { font-size: 0.75rem; color: #475569; margin-top: 0.25rem; }
+        
+        .chart-container { background: #F8FAFC; padding: 1rem; border-radius: 1rem; margin: 1rem 0; }
+        canvas { max-height: 350px; width: 100%; }
+        
+        button.primary {
+            background: #F59E0B;
+            color: #FFFFFF;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        button.primary:hover { background: #D97706; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        
+        .scenario-card {
+            background: #F8FAFC;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border: 1px solid #E2E8F0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .scenario-card:hover { border-color: #F59E0B; background: #FFFBEB; }
+        .selected-scenario { border-color: #F59E0B; background: #FFFBEB; box-shadow: 0 0 0 2px #F59E0B; }
+        
+        .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 768px) {
+            .two-columns { grid-template-columns: 1fr; }
+            .main-container { padding: 1rem; }
+            .nav-sections { display: none; }
+            .section { padding: 1.2rem; }
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 1rem;
         }
-        .container {
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #E2E8F0;
+            border-top-color: #F59E0B;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .pdf-note {
+            background: #FEF3C7;
+            padding: 1rem;
+            border-radius: 0.8rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #92400E;
+        }
+        
+        .inline-stats {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .inline-stat {
+            background: #F8FAFC;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
             text-align: center;
-            padding: 2rem;
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
+            flex: 1;
+            min-width: 120px;
         }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-        }
-        p {
-            font-size: 1.2rem;
-            opacity: 0.9;
+        .inline-stat .value { font-size: 1.3rem; font-weight: 700; color: #F59E0B; }
+        .inline-stat .label { font-size: 0.7rem; color: #475569; }
+        
+        @media print {
+            .app-header, .nav-sections, button.primary, .pdf-note, .lang-switch { display: none; }
+            .section { break-inside: avoid; page-break-inside: avoid; }
+            body { background: white; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🌍 Привет, мир!</h1>
-        <p>Мой первый сайт на GitHub Pages</p>
-        <p>✨ Работает! ✨</p>
+
+<div class="app-header">
+    <div class="logo-area"><span class="logo-icon">☀️</span><span class="logo-text">SolarEco Pro</span></div>
+    <div class="lang-switch">
+        <button class="lang-btn active" data-lang="uk">🇺🇦 УКР</button>
+        <button class="lang-btn" data-lang="en">🇬🇧 ENG</button>
     </div>
+</div>
+
+<div class="nav-sections">
+    <button class="nav-btn" data-section="section1">📍 Site Data</button>
+    <button class="nav-btn" data-section="section2">☀️ Area & Power</button>
+    <button class="nav-btn" data-section="section3">⚡ Generation</button>
+    <button class="nav-btn" data-section="section4">💰 Finance</button>
+    <button class="nav-btn" data-section="section5">🔀 Scenarios</button>
+    <button class="nav-btn" data-section="section6">📄 PDF Report</button>
+</div>
+
+<div class="main-container">
+    <!-- Section 1: Site Data -->
+    <div id="section1" class="section">
+        <div class="section-title" data-i18n="title1">📍 1. Site Data</div>
+        <div class="form-grid">
+            <div class="input-group"><label data-i18n="objName">Object Name</label><input type="text" id="objName" value="Water Supply Plant"></div>
+            <div class="input-group"><label data-i18n="region">Region (Ukraine)</label>
+                <select id="region">
+                    <option value="4.0">Kyiv / Central (4.0 h/day)</option>
+                    <option value="4.7">Odesa / South (4.7 h/day)</option>
+                    <option value="3.7">Lviv / West (3.7 h/day)</option>
+                    <option value="4.2">Kharkiv / East (4.2 h/day)</option>
+                    <option value="3.9">Dnipro (3.9 h/day)</option>
+                    <option value="3.8">Vinnytsia (3.8 h/day)</option>
+                    <option value="4.1">Zaporizhzhia (4.1 h/day)</option>
+                </select>
+            </div>
+            <div class="input-group"><label data-i18n="consumption">Annual Consumption (kWh)</label><input type="number" id="annualConsumption" value="500000"></div>
+            <div class="input-group"><label data-i18n="tariff">Electricity Tariff (UAH/kWh)</label><input type="number" id="tariff" value="14.0" step="0.5"></div>
+            <div class="input-group"><label data-i18n="growth">Tariff Growth (% per year)</label>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <input type="range" id="tariffGrowthSlider" min="0" max="20" step="0.5" value="5" style="flex:1;">
+                    <input type="number" id="tariffGrowth" value="5" step="0.5" style="width: 70px;">
+                </div>
+            </div>
+        </div>
+        <div class="result-cards" id="summaryBlock"></div>
+    </div>
+
+    <!-- Section 2: Area & Power -->
+    <div id="section2" class="section">
+        <div class="section-title" data-i18n="title2">📐 2. Area & Installation Parameters</div>
+        <div class="two-columns">
+            <div class="form-grid">
+                <div class="input-group"><label data-i18n="placement">Placement Type</label>
+                    <select id="placementType">
+                        <option value="flatRoof">🏢 Flat Roof</option>
+                        <option value="slopedRoof">🏠 Pitched Roof</option>
+                        <option value="ground">🌍 Ground</option>
+                        <option value="facade">🏛️ Facade</option>
+                        <option value="carport">🚗 Carport</option>
+                    </select>
+                </div>
+                <div class="input-group"><label data-i18n="area">Available Area (m²)</label><input type="number" id="grossArea" value="1000"></div>
+                <div class="input-group"><label data-i18n="orientation">Orientation</label>
+                    <select id="orientation">
+                        <option value="1.0">South</option>
+                        <option value="0.95">South-West / South-East</option>
+                        <option value="0.82">West / East</option>
+                        <option value="0.60">North</option>
+                    </select>
+                </div>
+                <div class="input-group"><label data-i18n="efficiency">System Efficiency</label>
+                    <input type="range" id="efficiency" min="0.75" max="0.95" step="0.01" value="0.85">
+                    <span id="efficiencyVal">85%</span>
+                </div>
+            </div>
+            <div id="areaResults" class="result-cards"></div>
+        </div>
+    </div>
+
+    <!-- Section 3: Generation -->
+    <div id="section3" class="section">
+        <div class="section-title" data-i18n="title3">📈 3. Energy Generation</div>
+        <div class="inline-stats" id="genStats"></div>
+        <div class="chart-container"><canvas id="monthlyChart"></canvas></div>
+    </div>
+
+    <!-- Section 4: Finance -->
+    <div id="section4" class="section">
+        <div class="section-title" data-i18n="title4">💰 4. Financial Analysis</div>
+        <div id="financeResults" class="result-cards"></div>
+        <div class="two-columns">
+            <div class="chart-container"><canvas id="cashflowChart"></canvas></div>
+            <div class="chart-container"><canvas id="capexPieChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Section 5: Scenarios -->
+    <div id="section5" class="section">
+        <div class="section-title" data-i18n="title5">🔀 5. Scenario Comparison</div>
+        <div id="scenariosContainer"></div>
+    </div>
+
+    <!-- Section 6: PDF -->
+    <div id="section6" class="section">
+        <div class="section-title" data-i18n="title6">📄 6. Generate PDF Report</div>
+        <div class="form-grid">
+            <div class="input-group"><label data-i18n="name">Your Name</label><input id="clientName" placeholder="Ivan Petrenko"></div>
+            <div class="input-group"><label data-i18n="position">Position</label><input id="clientPosition" placeholder="Chief Engineer"></div>
+            <div class="input-group"><label data-i18n="email">Email</label><input id="clientEmail" placeholder="ivan@example.com"></div>
+            <div class="input-group"><label data-i18n="phone">Phone</label><input id="clientPhone" placeholder="+38 067 123 4567"></div>
+        </div>
+        <button id="generatePdfBtn" class="primary">📑 Generate PDF Report</button>
+        <div class="pdf-note">
+            💡 After clicking, a new window with the report will open. Press Ctrl+P (or Cmd+P) and select "Save as PDF".
+        </div>
+    </div>
+</div>
+
+<script>
+// Translation data
+const translations = {
+    uk: {
+        title1: "📍 1. Дані об'єкта", title2: "📐 2. Площа та параметри", title3: "📈 3. Генерація", title4: "💰 4. Фінансовий аналіз", title5: "🔀 5. Сценарії", title6: "📄 6. PDF-звіт",
+        objName: "Назва об'єкта", region: "Область (Україна)", consumption: "Річне споживання (кВт·год)", tariff: "Тариф на електроенергію (грн/кВт·год)", growth: "Зростання тарифу (%/рік)",
+        placement: "Тип розміщення", area: "Доступна площа (м²)", orientation: "Орієнтація", efficiency: "ККД системи",
+        name: "Ваше ім'я", position: "Посада", email: "Email", phone: "Телефон",
+        annualGen: "Annual Generation", coverage: "Coverage", dailyGen: "Daily Average", installedPower: "Installed Power",
+        panels: "Panels", effectiveArea: "Effective Area", capex: "CAPEX", savings: "Savings/year", payback: "Payback",
+        npv: "NPV 25y", lcoe: "LCOE", irr: "IRR"
+    },
+    en: {
+        title1: "📍 1. Site Data", title2: "📐 2. Area & Parameters", title3: "📈 3. Generation", title4: "💰 4. Financial Analysis", title5: "🔀 5. Scenarios", title6: "📄 6. PDF Report",
+        objName: "Object Name", region: "Region (Ukraine)", consumption: "Annual Consumption (kWh)", tariff: "Electricity Tariff (UAH/kWh)", growth: "Tariff Growth (%/year)",
+        placement: "Placement Type", area: "Available Area (m²)", orientation: "Orientation", efficiency: "System Efficiency",
+        name: "Your Name", position: "Position", email: "Email", phone: "Phone",
+        annualGen: "Annual Generation", coverage: "Coverage", dailyGen: "Daily Average", installedPower: "Installed Power",
+        panels: "Panels", effectiveArea: "Effective Area", capex: "CAPEX", savings: "Savings/year", payback: "Payback",
+        npv: "NPV 25y", lcoe: "LCOE", irr: "IRR"
+    }
+};
+
+let currentLang = 'uk';
+let calcData = {
+    installedKWp: 0, panelCount: 0, annualGen: 0, capex: 0, opexYearly: 0,
+    savingsYearly: 0, paybackSimple: 0, npv: 0, lcoe: 0, irr: 0,
+    monthlyGenData: [], cfData: [], coverage: 0, yearlyCost: 0,
+    effectiveArea: 0, psh: 4.0, tariff: 14.0, consumption: 500000, growth: 5
+};
+
+let monthlyChart = null, cashflowChart = null, pieChart = null;
+
+const CONFIG = {
+    prices: { onGridRoof_UAH_per_kWp: 55000 },
+    placement: {
+        flatRoof: { utilizationFactor: 0.60, specificArea: 7, name: "Flat Roof" },
+        slopedRoof: { utilizationFactor: 0.87, specificArea: 6.5, name: "Pitched Roof" },
+        ground: { utilizationFactor: 0.45, specificArea: 12, name: "Ground" },
+        facade: { utilizationFactor: 0.80, specificArea: 8, genCoeff: 0.65, name: "Facade" },
+        carport: { utilizationFactor: 0.90, specificArea: 7, name: "Carport" }
+    },
+    seasonality: [0.45,0.58,0.82,1.05,1.20,1.28,1.25,1.18,0.98,0.70,0.48,0.38],
+    months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    opexPercent: 0.013, designPercent: 0.04, contingency: 0.10, discount: 0.10,
+    company: { name: "SolarEco Pro", phone: "+38 044 123 45 67", email: "info@solareco.pro", website: "www.solareco.pro" }
+};
+
+function updateUI() {
+    const t = translations[currentLang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.innerText = t[key];
+    });
+    calculateAll();
+}
+
+function calculateAll() {
+    let area = parseFloat(document.getElementById('grossArea').value) || 1000;
+    let placementKey = document.getElementById('placementType').value;
+    let placementData = CONFIG.placement[placementKey];
+    let orientationCoeff = parseFloat(document.getElementById('orientation').value);
+    let utilization = placementData.utilizationFactor;
+    let specific = placementData.specificArea;
+    let rawKWp = (area * utilization) / specific;
+    calcData.installedKWp = rawKWp * orientationCoeff;
+    if (placementData.genCoeff) calcData.installedKWp *= placementData.genCoeff;
+    calcData.panelCount = Math.floor(calcData.installedKWp / 0.55);
+    calcData.effectiveArea = area * utilization;
+    
+    calcData.psh = parseFloat(document.getElementById('region').value);
+    let efficiency = parseFloat(document.getElementById('efficiency').value);
+    calcData.annualGen = calcData.installedKWp * calcData.psh * 365 * efficiency;
+    let avgMonthly = calcData.annualGen / 12;
+    let seasonSum = CONFIG.seasonality.reduce((a,b)=>a+b,0);
+    calcData.monthlyGenData = CONFIG.seasonality.map(s => (avgMonthly * 12 * s) / seasonSum);
+    
+    calcData.tariff = parseFloat(document.getElementById('tariff').value);
+    calcData.savingsYearly = calcData.annualGen * calcData.tariff;
+    
+    let capexBase = calcData.installedKWp * CONFIG.prices.onGridRoof_UAH_per_kWp;
+    let designCost = capexBase * CONFIG.designPercent;
+    let contingencyCost = capexBase * CONFIG.contingency;
+    calcData.capex = capexBase + designCost + contingencyCost;
+    calcData.opexYearly = calcData.capex * CONFIG.opexPercent;
+    calcData.savingsYearly = calcData.annualGen * calcData.tariff - calcData.opexYearly;
+    calcData.paybackSimple = calcData.savingsYearly > 0 ? calcData.capex / calcData.savingsYearly : 99;
+    calcData.lcoe = calcData.capex / (calcData.annualGen * 25);
+    
+    calcData.growth = parseFloat(document.getElementById('tariffGrowth').value);
+    let growth = 1 + calcData.growth / 100;
+    let npvVal = -calcData.capex;
+    calcData.cfData = [-calcData.capex];
+    for (let y = 1; y <= 25; y++) {
+        let tariffY = calcData.tariff * Math.pow(growth, y-1);
+        let savingY = calcData.annualGen * tariffY - calcData.opexYearly;
+        npvVal += savingY / Math.pow(1 + CONFIG.discount, y);
+        calcData.cfData.push(calcData.cfData[y-1] + savingY);
+    }
+    calcData.npv = npvVal;
+    
+    let irrGuess = 0.15;
+    for (let iter = 0; iter < 20; iter++) {
+        let npvIr = -calcData.capex;
+        for (let y = 1; y <= 25; y++) {
+            let tariffY = calcData.tariff * Math.pow(growth, y-1);
+            let savingY = calcData.annualGen * tariffY - calcData.opexYearly;
+            npvIr += savingY / Math.pow(1 + irrGuess, y);
+        }
+        if (Math.abs(npvIr) < 1000) break;
+        irrGuess += npvIr > 0 ? 0.01 : -0.01;
+    }
+    calcData.irr = irrGuess * 100;
+    
+    calcData.consumption = parseFloat(document.getElementById('annualConsumption').value);
+    calcData.coverage = (calcData.annualGen / calcData.consumption) * 100;
+    calcData.yearlyCost = calcData.consumption * calcData.tariff;
+    
+    // Update UI
+    const t = translations[currentLang];
+    document.getElementById('summaryBlock').innerHTML = `
+        <div class="stat-card"><div class="stat-number">${calcData.yearlyCost.toLocaleString()} грн</div><div class="stat-label">${t.yearlyCost || 'Annual electricity cost'}</div></div>
+        <div class="stat-card"><div class="stat-number">${(calcData.consumption/365).toFixed(0)} kWh</div><div class="stat-label">${t.dailyConsumption || 'Daily consumption'}</div></div>
+        <div class="stat-card"><div class="stat-number">${calcData.psh} h/day</div><div class="stat-label">PSH (Solar potential)</div></div>
+    `;
+    
+    document.getElementById('areaResults').innerHTML = `
+        <div class="stat-card"><div class="stat-number">${calcData.installedKWp.toFixed(1)} kWp</div><div class="stat-label">${t.installedPower || 'Installed power'}</div></div>
+        <div class="stat-card"><div class="stat-number">${calcData.panelCount} pcs</div><div class="stat-label">${t.panels || 'Panels'}</div></div>
+        <div class="stat-card"><div class="stat-number">${calcData.effectiveArea.toFixed(0)} m²</div><div class="stat-label">${t.effectiveArea || 'Effective area'}</div></div>
+    `;
+    
+    document.getElementById('genStats').innerHTML = `
+        <div class="inline-stat"><div class="value">${Math.round(calcData.annualGen).toLocaleString()} kWh</div><div class="label">${t.annualGen || 'Annual generation'}</div></div>
+        <div class="inline-stat"><div class="value">${calcData.coverage.toFixed(1)}%</div><div class="label">${t.coverage || 'Coverage'}</div></div>
+        <div class="inline-stat"><div class="value">${(calcData.annualGen/365).toFixed(0)} kWh</div><div class="label">${t.dailyGen || 'Daily average'}</div></div>
+    `;
+    
+    document.getElementById('financeResults').innerHTML = `
+        <div class="stat-card"><div class="stat-number">${(calcData.capex/1000).toFixed(0)} тис. грн</div><div class="stat-label">${t.capex || 'CAPEX'}</div></div>
+        <div class="stat-card"><div class="stat-number">${calcData.savingsYearly.toFixed(0)} грн</div><div class="stat-label">${t.savings || 'Savings/year'}</div></div>
+        <div class="stat-card"><div class="stat-number">${calcData.paybackSimple.toFixed(1)} years</div><div class="stat-label">${t.payback || 'Payback'}</div></div>
+        <div class="stat-card"><div class="stat-number">${(calcData.npv/1000).toFixed(0)} тис. грн</div><div class="stat-label">${t.npv || 'NPV 25y'}</div></div>
+        <div class="stat-card"><div class="stat-number">${calcData.lcoe.toFixed(2)} грн/kWh</div><div class="stat-label">${t.lcoe || 'LCOE'}</div></div>
+        <div class="stat-card"><div class="stat-number">${calcData.irr.toFixed(1)}%</div><div class="stat-label">${t.irr || 'IRR'}</div></div>
+    `;
+    
+    let scenarios = [
+        { name: "On-grid Basic", capexMult: 1.0, savingMult: 1.0 },
+        { name: "On-grid + Feed-in", capexMult: 1.02, savingMult: 1.15 },
+        { name: "+ BESS (Battery)", capexMult: 1.4, savingMult: 1.2 },
+        { name: "+ DG (Backup)", capexMult: 1.08, savingMult: 1.05 },
+        { name: "Combo (BESS+DG)", capexMult: 1.55, savingMult: 1.3 }
+    ];
+    let scenariosHtml = '';
+    scenarios.forEach((s, i) => {
+        let capexScen = calcData.capex * s.capexMult;
+        let savingScen = calcData.savingsYearly * s.savingMult;
+        let paybackScen = capexScen / savingScen;
+        scenariosHtml += `<div class="scenario-card" onclick="selectScenario(${i})">
+            <strong>${s.name}</strong><br>
+            CAPEX: ${(capexScen/1000).toFixed(0)}k UAH | Savings: ${savingScen.toFixed(0)} UAH/year | Payback: ${paybackScen.toFixed(1)} years
+        </div>`;
+    });
+    document.getElementById('scenariosContainer').innerHTML = scenariosHtml;
+    
+    updateCharts();
+}
+
+function selectScenario(idx) {
+    document.querySelectorAll('.scenario-card').forEach((card, i) => {
+        if (i === idx) card.classList.add('selected-scenario');
+        else card.classList.remove('selected-scenario');
+    });
+}
+
+function updateCharts() {
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    if (monthlyChart) monthlyChart.destroy();
+    monthlyChart = new Chart(monthlyCtx, {
+        type: 'bar',
+        data: { 
+            labels: CONFIG.months, 
+            datasets: [{ 
+                label: 'Generation (kWh)', 
+                data: calcData.monthlyGenData, 
+                backgroundColor: '#F59E0B', 
+                borderRadius: 8,
+                barPercentage: 0.7
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: true,
+            plugins: { 
+                tooltip: { callbacks: { label: (ctx) => `${Math.round(ctx.raw).toLocaleString()} kWh` } },
+                datalabels: false
+            },
+            scales: { y: { beginAtZero: true, title: { display: true, text: 'kWh' } } }
+        }
+    });
+    
+    const cfCtx = document.getElementById('cashflowChart').getContext('2d');
+    if (cashflowChart) cashflowChart.destroy();
+    cashflowChart = new Chart(cfCtx, {
+        type: 'line',
+        data: { labels: Array.from({length:26}, (_,i)=>i), datasets: [{ label: 'Cumulative Cash Flow (UAH)', data: calcData.cfData, borderColor: '#F59E0B', fill: false, tension: 0.3 }] },
+        options: { responsive: true }
+    });
+    
+    const pieCtx = document.getElementById('capexPieChart').getContext('2d');
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(pieCtx, {
+        type: 'pie',
+        data: { labels: ['Equipment (86%)', 'Design (4%)', 'Contingency (10%)'], datasets: [{ data: [calcData.capex * 0.86, calcData.capex * 0.04, calcData.capex * 0.1], backgroundColor: ['#F59E0B', '#EA580C', '#3B82F6'] }] }
+    });
+}
+
+async function generatePDF() {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading';
+    loadingDiv.innerHTML = '<div class="spinner"></div><div>📄 Generating PDF Report...</div>';
+    document.body.appendChild(loadingDiv);
+    
+    try {
+        calculateAll();
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const objName = document.getElementById('objName').value || 'Not specified';
+        const region = document.getElementById('region').options[document.getElementById('region').selectedIndex].text;
+        const clientName = document.getElementById('clientName').value || '';
+        const clientPosition = document.getElementById('clientPosition').value || '';
+        const area = parseFloat(document.getElementById('grossArea').value) || 1000;
+        
+        const monthlyChartImg = document.getElementById('monthlyChart').toDataURL('image/png');
+        const cashflowChartImg = document.getElementById('cashflowChart').toDataURL('image/png');
+        
+        let growthRate = 1 + calcData.growth / 100;
+        let costWithout = 0;
+        for(let yc = 1; yc <= 25; yc++) costWithout += calcData.consumption * calcData.tariff * Math.pow(growthRate, yc-1);
+        let costWith = calcData.capex;
+        for(let yc = 1; yc <= 25; yc++) costWith += calcData.opexYearly;
+        let netBenefit = costWithout - costWith;
+        
+        const reportHtml = `<!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><title>Solar Report - ${objName}</title>
+        <style>
+            body { font-family: 'Segoe UI', 'Inter', sans-serif; margin: 0; padding: 30px; background: white; color: #1E293B; }
+            .container { max-width: 1100px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #F59E0B; padding-bottom: 20px; }
+            .header h1 { color: #F59E0B; margin-bottom: 5px; }
+            .metrics { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin: 20px 0; }
+            .metric-card { background: #F8FAFC; border-left: 4px solid #F59E0B; padding: 12px; border-radius: 8px; }
+            .metric-card .label { font-size: 0.8rem; color: #475569; }
+            .metric-card .value { font-size: 1.2rem; font-weight: bold; color: #F59E0B; }
+            .section { margin: 30px 0; page-break-inside: avoid; }
+            .section h3 { background: #F59E0B; color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 15px; }
+            table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+            th, td { border: 1px solid #CBD5E1; padding: 8px; text-align: left; }
+            th { background: #F1F5F9; }
+            .chart-img { max-width: 100%; margin: 10px 0; border: 1px solid #E2E8F0; border-radius: 8px; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #E2E8F0; font-size: 0.8rem; text-align: center; color: #64748B; }
+        </style>
+        </head>
+        <body>
+        <div class="container">
+            <div class="header">
+                <h1>☀️ PRELIMINARY SOLAR PV CALCULATION</h1>
+                <h2>Object: ${objName}</h2>
+                <p>Region: ${region} | Date: ${new Date().toLocaleDateString()}</p>
+                ${clientName ? `<p>Client: ${clientName} ${clientPosition ? '('+clientPosition+')' : ''}</p>` : ''}
+            </div>
+            
+            <div class="metrics">
+                <div class="metric-card"><div class="label">Installed Capacity</div><div class="value">${calcData.installedKWp.toFixed(1)} kWp</div></div>
+                <div class="metric-card"><div class="label">Annual Generation</div><div class="value">${Math.round(calcData.annualGen).toLocaleString()} kWh</div></div>
+                <div class="metric-card"><div class="label">CAPEX</div><div class="value">${(calcData.capex/1000).toFixed(0)}k UAH</div></div>
+                <div class="metric-card"><div class="label">Annual Savings</div><div class="value">${calcData.savingsYearly.toFixed(0)} UAH</div></div>
+                <div class="metric-card"><div class="label">Payback Period</div><div class="value">${calcData.paybackSimple.toFixed(1)} years</div></div>
+                <div class="metric-card"><div class="label">NPV (25 years)</div><div class="value">${(calcData.npv/1000).toFixed(0)}k UAH</div></div>
+                <div class="metric-card"><div class="label">IRR</div><div class="value">${calcData.irr.toFixed(1)}%</div></div>
+                <div class="metric-card"><div class="label">LCOE</div><div class="value">${calcData.lcoe.toFixed(2)} UAH/kWh</div></div>
+            </div>
+            
+            <div class="section">
+                <h3>📐 Installation Parameters</h3>
+                <table>
+                    <tr><th>Parameter</th><th>Value</th></tr>
+                    <tr><td>Placement Type</td><td>${document.getElementById('placementType').options[document.getElementById('placementType').selectedIndex].text}</td></tr>
+                    <tr><td>Available Area</td><td>${area} m²</td></tr>
+                    <tr><td>Effective Area</td><td>${calcData.effectiveArea.toFixed(0)} m²</td></tr>
+                    <tr><td>Number of Panels</td><td>${calcData.panelCount} pcs (550W each)</td></tr>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h3>📈 Monthly Generation</h3>
+                <img class="chart-img" src="${monthlyChartImg}">
+                <table><tr>${CONFIG.months.map(m => `<th>${m}</th>`).join('')}</tr>
+                <tr>${calcData.monthlyGenData.map(v => `<td>${Math.round(v)} kWh</td>`).join('')}</tr></table>
+            </div>
+            
+            <div class="section">
+                <h3>💰 Financial Analysis</h3>
+                <p><strong>CAPEX:</strong> ${calcData.capex.toLocaleString()} UAH</p>
+                <p><strong>Annual OPEX:</strong> ${calcData.opexYearly.toLocaleString()} UAH</p>
+                <p><strong>Net Annual Savings:</strong> ${calcData.savingsYearly.toLocaleString()} UAH</p>
+                <p><strong>Simple Payback:</strong> ${calcData.paybackSimple.toFixed(1)} years</p>
+                <p><strong>NPV (25 years):</strong> ${calcData.npv.toLocaleString()} UAH</p>
+                <img class="chart-img" src="${cashflowChartImg}">
+            </div>
+            
+            <div class="section">
+                <h3>📊 Comparison: With PV vs Without PV</h3>
+                <table><tr><th>Indicator</th><th>Without PV</th><th>With PV</th></tr>
+                <tr><td>Electricity cost over 25 years</td><td>${Math.round(costWithout).toLocaleString()} UAH</td><td>${Math.round(costWith).toLocaleString()} UAH</td></tr>
+                <tr><td><strong>Net Benefit</strong></td><td>-</td><td><strong>+ ${Math.round(netBenefit).toLocaleString()} UAH</strong></td></tr></table>
+                <p><strong>Conclusion:</strong> Installing solar PV will save ${Math.round(netBenefit/1000).toLocaleString()}k UAH over 25 years.</p>
+            </div>
+            
+            <div class="footer">
+                <p>📞 ${CONFIG.company.phone} | 📧 ${CONFIG.company.email} | 🌐 ${CONFIG.company.website}</p>
+                <p>Disclaimer: This calculation is preliminary and not a commercial offer.</p>
+            </div>
+        </div>
+        </body>
+        </html>`;
+        
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(reportHtml);
+        printWindow.document.close();
+        printWindow.onload = () => setTimeout(() => { printWindow.print(); loadingDiv.remove(); }, 500);
+        
+    } catch (error) {
+        alert('Error: ' + error.message);
+        loadingDiv.remove();
+    }
+}
+
+// Sync tariff growth sliders
+const tariffSlider = document.getElementById('tariffGrowthSlider');
+const tariffInput = document.getElementById('tariffGrowth');
+tariffSlider.addEventListener('input', () => { tariffInput.value = tariffSlider.value; calculateAll(); });
+tariffInput.addEventListener('input', () => { tariffSlider.value = tariffInput.value; calculateAll(); });
+
+document.getElementById('generatePdfBtn').addEventListener('click', generatePDF);
+document.getElementById('resetBtn')?.addEventListener('click', () => { if(confirm('Reset all data?')) location.reload(); });
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => document.getElementById(btn.dataset.section).scrollIntoView({ behavior: 'smooth' }));
+});
+document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLang = btn.dataset.lang;
+        updateUI();
+    });
+});
+document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', () => calculateAll()));
+document.getElementById('efficiency').addEventListener('input', (e) => { document.getElementById('efficiencyVal').innerText = (e.target.value*100).toFixed(0)+'%'; calculateAll(); });
+
+calculateAll();
+</script>
 </body>
 </html>
