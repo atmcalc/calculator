@@ -1,0 +1,30 @@
+// 1. Базова вартість = потужність (кВп) × ціна за кВп
+cBase = power * pricePerKwp;
+
+// 2. Кабельна траса = довжина (м) × 300 грн/м
+cCable = cableLen * CONFIG.prices.cable_per_m;  // 300 грн/м
+
+// 3. Батарея BESS = ємність (кВт·год) × 35 000 грн/кВт·год
+cBESS = bessKwh * CONFIG.prices.BESS_per_kWh;   // 35 000 грн/кВт·год
+
+// 4. Трансформатор (вводиться вручну)
+cTransformer = transformerCost;
+
+// Проміжна сума
+subTotal = cBase + cCable + cBESS + cTransformer;
+
+// 5. Проєктування та ТУ = 4% від проміжної суми
+cDesign = subTotal * CONFIG.finance.design_pct;      // 0.04
+
+// 6. Резерв непередбачених = 10% від проміжної суми
+cContingency = subTotal * CONFIG.finance.contingency_pct;  // 0.10
+
+// РАЗОМ CAPEX
+capex = subTotal + cDesign + cContingency;
+
+// Базові ціни за 1 кВп (грн)
+// Вказані у select id="sesType"
+<option value="55000">On-grid з обмеженням видачі (дах)</option>  // 55 000 грн/кВп
+<option value="50000">On-grid (наземна)</option>                 // 50 000 грн/кВп
+<option value="58000">On-grid з продажем у мережу</option>      // 58 000 грн/кВп
+<option value="70000">Гібридна (готовність до батарей)</option> // 70 000 грн/кВп
