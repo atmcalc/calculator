@@ -7,7 +7,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- Підключення конфігураційного файлу -->
 <script src="config.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -373,6 +372,16 @@ select.inp { cursor: pointer; }
 <section class="section" id="sec2">
   <div class="sec-title">⚡ <span data-i="s3-title">Генерація <span class="accent">електроенергії</span></span></div>
   <div class="sec-desc" data-i="s3-desc">Розрахунок обсягу електроенергії, яку виробить ваша СЕС протягом року.</div>
+  
+  <!-- Додаємо slider для ККД системи -->
+  <div class="card">
+    <div class="card-title" data-i="c-efficiency">Ефективність системи</div>
+    <div class="slider-row">
+      <input type="range" class="slider" id="etaSlider" min="75" max="95" value="85" oninput="document.getElementById('etaVal').textContent=this.value+'%'; debouncedRecalc();">
+      <span class="slider-val" id="etaVal">85%</span>
+    </div>
+  </div>
+  
   <div class="kpi-grid">
     <div class="kpi-card highlight"><div class="kpi-label" data-i="kpi-annual-gen">Річна генерація</div><div class="kpi-value" id="r-annual-gen">—</div><div class="kpi-sub">кВт·год/рік</div></div>
     <div class="kpi-card green-card"><div class="kpi-label" data-i="kpi-coverage">Покриття споживання</div><div class="kpi-value" id="r-coverage">—</div><div class="kpi-sub" id="r-coverage-sub"></div></div>
@@ -407,7 +416,13 @@ select.inp { cursor: pointer; }
       <div class="toggle-row"><div class="toggle" id="bessToggle" onclick="toggleBESS()"></div><span class="toggle-label" data-i="f-bess">Додати батарею (BESS)?</span></div>
       <div id="bessFields" style="display:none;"><div class="field-group"><div class="field-label" data-i="f-bess-kwh">Ємність батареї</div><div class="inp-unit"><input class="inp" type="number" id="bessKwh" value="100" min="10" step="10" oninput="debouncedRecalc()"><span class="unit-label">кВт·год</span></div></div></div>
       <div class="divider"></div>
-      <table class="data-table"><tbody><tr><td data-i="ct-base">Базова вартість СЕС</td><td class="num sun" id="c-base">—</td></tr><tr><td data-i="ct-cable">Кабельна траса</td><td class="num" id="c-cable">—</td></tr><tr><td data-i="ct-bess">Батарея BESS</td><td class="num" id="c-bess">—</td></tr><tr><td data-i="ct-transf">Трансформатор</td><td class="num" id="c-transformer">—</td></tr><tr><td data-i="ct-design">Проєктування та ТУ (4%)</td><td class="num" id="c-design">—</td></tr><tr><td data-i="ct-reserve">Резерв непередбачених (10%)</td><td class="num" id="c-contingency">—</td></tr><tr style="font-weight:700;"><td data-i="ct-total">РАЗОМ CAPEX</td><td class="num sun" id="c-total">—</td></tr></tbody></table>
+      <table class="data-table"><tbody><tr><td data-i="ct-base">Базова вартість СЕС</td><td class="num sun" id="c-base">—</td></tr>
+      <tr><td data-i="ct-cable">Кабельна траса</td><td class="num" id="c-cable">—</td></tr>
+      <tr><td data-i="ct-bess">Батарея BESS</td><td class="num" id="c-bess">—</td></tr>
+      <tr><td data-i="ct-transf">Трансформатор</td><td class="num" id="c-transformer">—</td></tr>
+      <tr><td data-i="ct-design">Проєктування та ТУ (4%)</td><td class="num" id="c-design">—</td></tr>
+      <tr><td data-i="ct-reserve">Резерв непередбачених (10%)</td><td class="num" id="c-contingency">—</td></tr>
+      <tr style="font-weight:700;"><td data-i="ct-total">РАЗОМ CAPEX</td><td class="num sun" id="c-total">—</td></tr></tbody></table>
     </div>
     <div class="card">
       <div class="card-title" data-i="c-fin-results">Результати фінансового аналізу</div>
@@ -421,7 +436,10 @@ select.inp { cursor: pointer; }
   </div>
   <div class="card">
     <div class="card-title" data-i="c-compare">Порівняння: з СЕС vs без СЕС</div>
-    <table class="data-table"><thead><tr><th></th><th data-i="th-without">Без СЕС</th><th data-i="th-with">З СЕС</th><th data-i="th-diff">Різниця (вигода)</th></tr></thead><tbody><tr><td data-i="cmp-row1">Витрати на ел-ку за 25 р.</td><td class="num" id="cmp-without">—</td><td class="num" id="cmp-with">—</td><td class="num green" id="cmp-diff">—</td></tr><tr><td data-i="cmp-row2">Вартість кВт·год</td><td class="num" id="cmp-tariff-now">—</td><td class="num" id="cmp-lcoe">—</td><td class="num green" id="cmp-lcoe-diff">—</td></tr></tbody></table>
+    <table class="data-table"><thead><tr><th></th><th data-i="th-without">Без СЕС</th><th data-i="th-with">З СЕС</th><th data-i="th-diff">Різниця (вигода)</th></tr></thead><tbody>
+      <tr><td data-i="cmp-row1">Витрати на ел-ку за 25 р.</td><td class="num" id="cmp-without">—</td><td class="num" id="cmp-with">—</td><td class="num green" id="cmp-diff">—</td></tr>
+      <tr><td data-i="cmp-row2">Вартість кВт·год</td><td class="num" id="cmp-tariff-now">—</td><td class="num" id="cmp-lcoe">—</td><td class="num green" id="cmp-lcoe-diff">—</td></tr>
+    </tbody></table>
   </div>
 </section>
 
@@ -551,9 +569,7 @@ function applyLang() {
 function setLang(l) { currentLang = l; document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active')); (l === 'uk' ? document.querySelector('.lang-btn:first-child') : document.querySelector('.lang-btn:last-child')).classList.add('active'); applyLang(); saveData(); }
 
 // ==================== CONFIG (використовуємо глобальний об'єкт з config.js) ====================
-// Перевіряємо, чи існує глобальний CONFIG (з config.js)
 if (typeof window.CONFIG === 'undefined') {
-  console.warn('CONFIG not found! Using default values.');
   window.CONFIG = {
     prices: { onGridRoof: 55000, onGridGround: 50000, onGridLimited: 58000, hybrid: 70000, BESS_per_kWh: 35000, DG_adapter: 15000, cable_per_m: 300 },
     solar: { seasonality: [0.45,0.58,0.82,1.05,1.20,1.28,1.25,1.18,0.98,0.70,0.48,0.38], degradation: 0.005 },
@@ -569,14 +585,12 @@ if (typeof window.CONFIG === 'undefined') {
 }
 const CONFIG = window.CONFIG;
 
-// PSH map for regions
 const PSH_MAP = { '4.7':1350, '4.3':1220, '4.2':1200, '4.1':1180, '4.0':1150, '3.9':1100, '3.8':1050, '3.7':1000 };
 
 let state = { placement: 'flatRoof', orientCoeff: 1.0, orient: 'S', calcMode: 'area', dgOn: false, bessOn: false, selectedScenario: -1, R: {} };
 let charts = {};
 
 function getPSH() { return parseFloat(document.getElementById('region').value) || 4.0; }
-function getGenPerKwp(psh) { return PSH_MAP[psh.toFixed(1)] || Math.round(psh * 365 * 0.85 * 0.82); }
 function fmtN(n, dec=0) { return isNaN(n) || !isFinite(n) ? '—' : n.toLocaleString('uk-UA', {maximumFractionDigits: dec, minimumFractionDigits: dec}); }
 function fmtC(n) { return fmtN(n) + ' ₴'; }
 
@@ -600,9 +614,8 @@ function setPlacement(key, cardEl) {
 }
 function setMode(m) { state.calcMode = m; document.getElementById('modeA').classList.toggle('active', m==='area'); document.getElementById('modeP').classList.toggle('active', m==='power'); document.getElementById('areaInputBlock').style.display = m==='area' ? '' : 'none'; document.getElementById('powerInputBlock').style.display = m==='power' ? '' : 'none'; debouncedRecalc(); }
 function setOrient(o, coeff, el) { state.orient = o; state.orientCoeff = coeff; document.querySelectorAll('.orient-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); debouncedRecalc(); }
-function regionChange() { const psh = getPSH(); const genPerKwp = getGenPerKwp(psh); document.getElementById('kpi-psh').innerHTML = psh + ' <span class="unit">' + t('psh-unit') + '</span>'; document.getElementById('kpi-gen-kwp').innerHTML = genPerKwp + ' <span class="unit">' + t('kwh-year') + '</span>'; debouncedRecalc(); saveData(); }
+function regionChange() { const psh = getPSH(); const genPerKwp = Math.round(psh * 365 * 0.85 * 0.82); document.getElementById('kpi-psh').innerHTML = psh + ' <span class="unit">' + t('psh-unit') + '</span>'; document.getElementById('kpi-gen-kwp').innerHTML = genPerKwp + ' <span class="unit">' + t('kwh-year') + '</span>'; debouncedRecalc(); saveData(); }
 
-// ==================== MAIN CALCULATION ====================
 function recalcAll() {
   const psh = getPSH();
   const eta = (parseInt(document.getElementById('etaSlider')?.value)||85)/100;
@@ -613,7 +626,6 @@ function recalcAll() {
   const selfConsume = 0.85;
   const pl = CONFIG.placement[state.placement];
   
-  document.getElementById('kpi-psh').innerHTML = psh + ' <span class="unit">' + t('psh-unit') + '</span>';
   document.getElementById('kpi-annual-cost').innerHTML = fmtN(annual * tariff) + ' <span class="unit">₴</span>';
   document.getElementById('kpi-daily').innerHTML = fmtN(annual / 365, 0) + ' <span class="unit">' + t('kwh-day') + '</span>';
   
@@ -753,7 +765,7 @@ function recalcAll() {
     [t('sc-cmp-pay'), sc.map(s=>isFinite(s.pay)?s.pay.toFixed(1)+' '+t('years'):'—')],
     [t('sc-cmp-res'), ['—','—',bessHours.toFixed(1)+' год','ДГ',(bessHours*2).toFixed(1)+' год']]
   ];
-  document.getElementById('scenarioCompareBody').innerHTML = rows.map(([lbl,vals]) => `<tr><td class="row-label">${lbl}</td>${vals.map(v=>`<td>${v}<td>`).join('')}</td>`).join('');
+  document.getElementById('scenarioCompareBody').innerHTML = rows.map(([lbl,vals]) => `<tr><td class="row-label">${lbl}<tr>${vals.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('');
   updateChartCashflow(capex, netCF1, tariffGrowth);
   updateChartCapex(cBase, cCable, cBESS, cTransformer, cDesign+cContingency);
   updateChartScenarios(sc);
@@ -761,14 +773,14 @@ function recalcAll() {
   updateReport(); saveData();
 }
 
-// ==================== CHARTS ====================
 const MONTHS_UK = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
 const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function getMonths() { return currentLang === 'en' ? MONTHS_EN : MONTHS_UK; }
 
 function updateChartMonthly(annualGen, annual) {
   const ctx = document.getElementById('chartMonthly').getContext('2d');
-  const monthlyGen = CONFIG.solar.seasonality.map(k => Math.round(annualGen / 12 * k / (CONFIG.solar.seasonality.reduce((a,b)=>a+b,0)/12)));
+  const seasonSum = CONFIG.solar.seasonality.reduce((a,b)=>a+b,0);
+  const monthlyGen = CONFIG.solar.seasonality.map(k => Math.round(annualGen / 12 * k / (seasonSum/12)));
   const monthlyConsumption = Array(12).fill(Math.round(annual / 12));
   const withoutPV = monthlyConsumption;
   const withPV = monthlyConsumption.map((cons, i) => Math.max(0, cons - monthlyGen[i]));
