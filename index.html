@@ -667,14 +667,13 @@ function updateChartMonthly(annualGen, annual) {
   const monthlyGen = CONFIG.solar.seasonality.map(k => Math.round(annualGen / 12 * k / (seasonSum/12)));
   const monthlyConsumption = Array(12).fill(Math.round(annual / 12));
   
-  // Розрахунок складових для stacked bar
-  // Висота стовпця = споживання без СЕС
-  // Частина, яку покриває генерація (не більше споживання)
-  const coveredByPV = monthlyGen.map((gen, i) => Math.min(gen, monthlyConsumption[i]));
-  // Надлишок, який обрізається (якщо gen > consumption)
-  const curtailed = monthlyGen.map((gen, i) => Math.max(0, gen - monthlyConsumption[i]));
-  // Споживання з мережі = загальне споживання - покрита частина
-  const gridConsumption = monthlyConsumption.map((cons, i) => cons - coveredByPV[i]);
+  // Розрахунок складових:
+  // Скільки генерації використано для покриття споживання (не більше ніж споживання)
+  const usedGen = monthlyGen.map((gen, i) => Math.min(gen, monthlyConsumption[i]));
+  // Скільки залишилося докупити з мережі (якщо генерації менше за споживання)
+  const gridNeeded = monthlyConsumption.map((cons, i) => Math.max(0, cons - monthlyGen[i]));
+  // Надлишок генерації (якщо генеруємо більше, ніж споживаємо)
+  const surplus = monthlyGen.map((gen, i) => Math.max(0, gen - monthlyConsumption[i]));
   
   if (charts.monthly) charts.monthly.destroy();
   
@@ -684,18 +683,8 @@ function updateChartMonthly(annualGen, annual) {
       labels: MONTHS,
       datasets: [
         {
-          label: 'Споживання з мережі (купуємо)',
-          data: gridConsumption,
-          backgroundColor: '#10B981',
-          borderRadius: 4,
-          borderSkipped: false,
-          barPercentage: 0.7,
-          categoryPercentage: 0.8,
-          stack: 'energy'
-        },
-        {
-          label: 'Генерація СЕС (використана)',
-          data: coveredByPV,
+          label: '☀️ Генерація СЕС (використана)',
+          data: usedGen,
           backgroundColor: '#F59E0B',
           borderRadius: 4,
           borderSkipped: false,
@@ -704,8 +693,18 @@ function updateChartMonthly(annualGen, annual) {
           stack: 'energy'
         },
         {
-          label: 'Надлишок (обрізається)',
-          data: curtailed,
+          label: '🔌 Споживання з мережі (купуємо)',
+          data: gridNeeded,
+          backgroundColor: '#10B981',
+          borderRadius: 4,
+          borderSkipped: false,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8,
+          stack: 'energy'
+        },
+        {
+          label: '⚠️ Надлишок (обрізається)',
+          data: surplus,
           backgroundColor: '#EF4444',
           borderRadius: 4,
           borderSkipped: false,
@@ -720,7 +719,17 @@ function updateChartMonthly(annualGen, annual) {
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { position: 'bottom', labels: { color: '#475569', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 10 } },
+        legend: { 
+          position: 'bottom', 
+          labels: { 
+            color: '#475569', 
+            font: { size: 11, weight: '500' }, 
+            boxWidth: 12, 
+            padding: 10,
+            usePointStyle: true,
+            pointStyle: 'rect'
+          } 
+        },
         tooltip: {
           callbacks: {
             label: (ctx) => {
@@ -750,30 +759,30 @@ function updateChartMonthly(annualGen, annual) {
       afterDatasetsDraw(chart) {
         const { ctx, data } = chart;
         ctx.save();
-        // Підписуємо загальну висоту стовпця (споживання без СЕС)
+        // Підписуємо загальну висоту стовпця
         for (let i = 0; i < monthlyConsumption.length; i++) {
-          const total = monthlyConsumption[i];
-          if (total === 0) continue;
-          
-          // Знаходимо верхній край останнього видимого сегмента
-          let stackEnd = 0;
-          for (let dsIdx = 0; dsIdx < chart.data.datasets.length; dsIdx++) {
-            const meta = chart.getDatasetMeta(dsIdx);
-            if (meta.hidden) continue;
-            const val = data.datasets[dsIdx].data[i];
-            if (val > 0) {
-              stackEnd += val;
-            }
-          }
+          // Загальна висота = споживання + надлишок (якщо є)
+          const totalHeight = monthlyConsumption[i] + surplus[i];
+          if (totalHeight === 0) continue;
           
           // Знаходимо координату Y верхньої точки
-          let yPos = chart.scales.y.getPixelForValue(stackEnd);
+          let yPos = chart.scales.y.getPixelForValue(totalHeight);
           
           ctx.fillStyle = '#1E293B';
           ctx.font = '500 11px "Inter", sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
-          ctx.fillText(`${total.toLocaleString('uk-UA')} кВт·год`, chart.scales.x.getPixelForValue(i), yPos - 4);
+          
+          // Підписуємо загальне споживання (без СЕС)
+          ctx.fillText(`${monthlyConsumption[i].toLocaleString('uk-UA')} кВт·год`, chart.scales.x.getPixelForValue(i), yPos - 4);
+          
+          // Якщо є надлишок, підписуємо його червоним
+          if (surplus[i] > 0) {
+            let surplusYPos = chart.scales.y.getPixelForValue(monthlyConsumption[i] + surplus[i]) - 4;
+            ctx.fillStyle = '#EF4444';
+            ctx.font = 'bold 10px "Inter", sans-serif';
+            ctx.fillText(`+${surplus[i].toLocaleString('uk-UA')} кВт·год надлишку`, chart.scales.x.getPixelForValue(i), surplusYPos - 20);
+          }
         }
         ctx.restore();
       }
