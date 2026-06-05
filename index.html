@@ -1517,55 +1517,46 @@ const CHART_OPTS = {
   }
 };
 
+// ================================================================
+// CHARTS — ОНОВЛЕННЯ БЕЗ ПЕРЕСТВОРЕННЯ
+// ================================================================
+
 function updateChartMonthly(annualGen, annual) {
   const ctx = document.getElementById('chartMonthly').getContext('2d');
   const monthlyGen = CONFIG.solar.seasonality.map(k => Math.round(annualGen / 12 * k / (CONFIG.solar.seasonality.reduce((a,b)=>a+b,0)/12)));
   const monthlyConsump = Array(12).fill(Math.round(annual / 12));
 
-  if (charts.monthly) charts.monthly.destroy();
+  if (charts.monthly) {
+    // Оновлюємо дані, не знищуючи графік
+    charts.monthly.data.datasets[0].data = monthlyGen;
+    charts.monthly.data.datasets[1].data = monthlyConsump;
+    charts.monthly.data.labels = getMonths();
+    charts.monthly.update();
+    return;
+  }
+
+  // Перше створення (тільки один раз)
   charts.monthly = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: getMonths(),
       datasets: [
-        {
-          label: currentLang==='en' ? 'PV Generation' : 'Генерація СЕС',
-          data: monthlyGen,
-          backgroundColor: 'rgba(245,158,11,0.8)',
-          borderRadius: 5,
-          borderSkipped: false,
-        },
-        {
-          label: currentLang==='en' ? 'Consumption' : 'Споживання',
-          data: monthlyConsump,
-          type: 'line',
-          borderColor: '#3B82F6',
-          backgroundColor: 'rgba(59,130,246,0.08)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.3,
-          pointRadius: 4,
-          pointBackgroundColor: '#3B82F6',
-        }
+        { label: currentLang==='en' ? 'PV Generation' : 'Генерація СЕС', data: monthlyGen, backgroundColor: 'rgba(245,158,11,0.8)', borderRadius: 5, borderSkipped: false },
+        { label: currentLang==='en' ? 'Consumption' : 'Споживання', data: monthlyConsump, type: 'line', borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.08)', borderWidth: 2, fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#3B82F6' }
       ]
     },
     options: {
-      ...CHART_OPTS,
+      responsive: true, maintainAspectRatio: false,
       plugins: {
-        ...CHART_OPTS.plugins,
-        datalabels: false,
+        legend: { labels: { color: '#475569', font: { size: 11 }, boxWidth: 12 } },
         tooltip: { mode: 'index', intersect: false }
       },
       scales: {
-        ...CHART_OPTS.scales,
-        y: {
-          ...CHART_OPTS.scales.y,
-          ticks: { ...CHART_OPTS.scales.y.ticks, callback: v => v.toLocaleString('uk-UA') + ' кВт·год' }
-        }
+        x: { ticks: { color: '#94A3B8', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        y: { ticks: { color: '#94A3B8', font: { size: 11 }, callback: v => v.toLocaleString('uk-UA') + ' кВт·год' }, grid: { color: 'rgba(0,0,0,0.05)' } }
       }
     },
     plugins: [{
-      // Draw values on top of bars
       afterDatasetsDraw(chart) {
         const { ctx, data } = chart;
         ctx.save();
@@ -1594,27 +1585,23 @@ function updateChartCashflow(capex, cf1, growth) {
     data.push(Math.round(cum));
     labels.push('' + y);
   }
-  if (charts.cashflow) charts.cashflow.destroy();
+
+  if (charts.cashflow) {
+    charts.cashflow.data.labels = labels;
+    charts.cashflow.data.datasets[0].data = data;
+    charts.cashflow.update();
+    return;
+  }
+
   charts.cashflow = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: currentLang==='en' ? 'Cumulative cash flow' : 'Накопичений потік',
-        data,
-        borderColor: '#10B981',
-        backgroundColor: 'rgba(16,185,129,0.07)',
-        fill: true,
-        tension: 0.35,
-        borderWidth: 2.5,
-        pointRadius: 0
-      }]
-    },
+    data: { labels, datasets: [{ label: currentLang==='en' ? 'Cumulative cash flow' : 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.07)', fill: true, tension: 0.35, borderWidth: 2.5, pointRadius: 0 }] },
     options: {
-      ...CHART_OPTS,
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#475569', font: { size: 11 } } } },
       scales: {
-        ...CHART_OPTS.scales,
-        y: { ...CHART_OPTS.scales.y, ticks: { ...CHART_OPTS.scales.y.ticks, callback: v => (v/1000).toFixed(0)+'k ₴' } }
+        x: { ticks: { color: '#94A3B8', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        y: { ticks: { color: '#94A3B8', font: { size: 11 }, callback: v => (v/1000).toFixed(0)+'k ₴' }, grid: { color: 'rgba(0,0,0,0.05)' } }
       }
     }
   });
@@ -1625,21 +1612,20 @@ function updateChartCapex(cBase, cCable, cBESS, cTrans, cOther) {
   const labels = currentLang==='en'
     ? ['PV System','Cable','BESS','Transformer','Design+Reserve']
     : ['СЕС','Кабель','BESS','Трансформатор','Проєкт+Резерв'];
-  if (charts.capex) charts.capex.destroy();
+  const data = [cBase, cCable, cBESS, cTrans, cOther];
+
+  if (charts.capex) {
+    charts.capex.data.labels = labels;
+    charts.capex.data.datasets[0].data = data;
+    charts.capex.update();
+    return;
+  }
+
   charts.capex = new Chart(ctx, {
     type: 'doughnut',
-    data: {
-      labels,
-      datasets: [{
-        data: [cBase, cCable, cBESS, cTrans, cOther],
-        backgroundColor: ['#F59E0B','#3B82F6','#10B981','#8B5CF6','#94A3B8'],
-        borderWidth: 0,
-        hoverOffset: 6
-      }]
-    },
+    data: { labels, datasets: [{ data, backgroundColor: ['#F59E0B','#3B82F6','#10B981','#8B5CF6','#94A3B8'], borderWidth: 0, hoverOffset: 6 }] },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '62%',
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
       plugins: { legend: { position: 'right', labels: { color:'#475569', font:{size:10}, boxWidth:10, padding:8 } } }
     }
   });
@@ -1650,33 +1636,32 @@ function updateChartScenarios(sc) {
   const labels = currentLang==='en'
     ? ['Sc.1 Export limit','Sc.2 Feed-in','Sc.3 +BESS','Sc.4 +DG','Sc.5 Combo']
     : ['Сц.1 Обмеження','Сц.2 Продаж','Сц.3 +BESS','Сц.4 +ДГ','Сц.5 Комбо'];
-  if (charts.scenarios) charts.scenarios.destroy();
+  const capexData = sc.map(s => Math.round(s.C));
+  const paybackData = sc.map(s => isFinite(s.pay) ? parseFloat(s.pay.toFixed(1)) : 0);
+
+  if (charts.scenarios) {
+    charts.scenarios.data.labels = labels;
+    charts.scenarios.data.datasets[0].data = capexData;
+    charts.scenarios.data.datasets[1].data = paybackData;
+    charts.scenarios.update();
+    return;
+  }
+
   charts.scenarios = new Chart(ctx, {
     type: 'bar',
     data: {
       labels,
       datasets: [
-        {
-          label: 'CAPEX (₴)',
-          data: sc.map(s => Math.round(s.C)),
-          backgroundColor: 'rgba(245,158,11,0.75)',
-          borderRadius: 4,
-          yAxisID: 'y'
-        },
-        {
-          label: currentLang==='en' ? 'Payback (yr)' : 'Окупність (р.)',
-          data: sc.map(s => isFinite(s.pay) ? parseFloat(s.pay.toFixed(1)) : 0),
-          backgroundColor: 'rgba(59,130,246,0.7)',
-          borderRadius: 4,
-          yAxisID: 'y2'
-        }
+        { label: 'CAPEX (₴)', data: capexData, backgroundColor: 'rgba(245,158,11,0.75)', borderRadius: 4, yAxisID: 'y' },
+        { label: currentLang==='en' ? 'Payback (yr)' : 'Окупність (р.)', data: paybackData, backgroundColor: 'rgba(59,130,246,0.7)', borderRadius: 4, yAxisID: 'y2' }
       ]
     },
     options: {
-      ...CHART_OPTS,
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#475569', font: { size: 11 } } } },
       scales: {
-        x: { ...CHART_OPTS.scales.x },
-        y: { position: 'left', ticks: { color: '#94A3B8', font:{size:10}, callback: v => (v/1000).toFixed(0)+'k' }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        x: { ticks: { color: '#94A3B8', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        y: { position: 'left', ticks: { color: '#94A3B8', font:{size:10}, callback: v => (v/1000).toFixed(0)+'k' }, grid: { color: 'rgba(0,0,0,0.05)' } },
         y2: { position: 'right', ticks: { color: '#94A3B8', font:{size:10}, callback: v => v+' '+t('years') }, grid: { display: false } }
       }
     }
