@@ -37,7 +37,7 @@ body {
   background: var(--c-bg);
   color: var(--c-text);
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.5;
   min-height: 100vh;
 }
 
@@ -80,162 +80,161 @@ body {
 .tab-icon { font-size: 14px; }
 
 .main { max-width: 1200px; margin: 0 auto; padding: 126px 20px 80px; }
-.section { margin-bottom: 40px; scroll-margin-top: 126px; }
-.sec-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+.section { margin-bottom: 56px; scroll-margin-top: 126px; }
+.sec-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
 .sec-title .accent { color: var(--c-sun); }
-.sec-desc { color: var(--c-text2); font-size: 12px; margin-bottom: 16px; }
-.card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--c-sun); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.sec-desc { color: var(--c-text2); font-size: 13px; margin-bottom: 20px; }
+.card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--c-sun); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 .card-title::before { content: ''; width: 3px; height: 14px; background: var(--c-sun); border-radius: 2px; }
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
 
-.field-group { margin-bottom: 10px; }
-.field-label { font-size: 11px; font-weight: 600; color: var(--c-text2); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
-.tooltip-icon { cursor: help; color: var(--c-text3); font-size: 11px; position: relative; }
+.field-group { margin-bottom: 14px; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--c-text2); margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.tooltip-icon { cursor: help; color: var(--c-text3); font-size: 12px; position: relative; }
 .tooltip-icon:hover::after { content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: var(--c-surface); border: 1px solid var(--c-border); color: var(--c-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; max-width: 220px; white-space: normal; z-index: 100; min-width: 150px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-.inp { width: 100%; background: var(--c-surface2); border: 1px solid var(--c-border); color: var(--c-text); border-radius: var(--r); padding: 7px 10px; font-size: 13px; transition: border-color 0.15s; font-family: var(--font); }
+.inp { width: 100%; background: var(--c-surface2); border: 1px solid var(--c-border); color: var(--c-text); border-radius: var(--r); padding: 9px 12px; font-size: 14px; transition: border-color 0.15s; font-family: var(--font); }
 .inp:focus { outline: none; border-color: var(--c-sun); box-shadow: 0 0 0 3px var(--c-sun-glow); }
 select.inp { cursor: pointer; }
 .inp-unit { position: relative; }
-.inp-unit .inp { padding-right: 50px; }
-.unit-label { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--c-text2); font-size: 11px; pointer-events: none; }
+.inp-unit .inp { padding-right: 54px; }
+.unit-label { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--c-text2); font-size: 12px; pointer-events: none; }
 
 .slider-row { display: flex; align-items: center; gap: 10px; }
 .slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; background: var(--c-border); border-radius: 2px; cursor: pointer; }
-.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--c-sun); border-radius: 50%; cursor: pointer; }
-.slider-val { min-width: 45px; text-align: right; font-weight: 700; color: var(--c-sun); font-size: 13px; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--c-sun); border-radius: 50%; cursor: pointer; }
+.slider-val { min-width: 50px; text-align: right; font-weight: 700; color: var(--c-sun); font-size: 14px; }
 
-.toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.toggle-label { font-size: 12px; color: var(--c-text2); }
-.toggle { width: 36px; height: 18px; background: var(--c-border); border-radius: 9px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.toggle-label { font-size: 13px; color: var(--c-text2); }
+.toggle { width: 38px; height: 20px; background: var(--c-border); border-radius: 10px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
 .toggle.on { background: var(--c-sun); }
-.toggle::after { content: ''; width: 14px; height: 14px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: left 0.2s; }
+.toggle::after { content: ''; width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: left 0.2s; }
 .toggle.on::after { left: 20px; }
 
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 10px; margin-bottom: 12px; }
-.kpi-card { background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 12px 14px; position: relative; overflow: hidden; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi-card { background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 16px 18px; position: relative; overflow: hidden; }
 .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--c-sun), var(--c-sun2)); }
-.kpi-label { font-size: 9px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 4px; }
-.kpi-value { font-size: 22px; font-weight: 800; color: var(--c-text); line-height: 1; }
-.kpi-value .unit { font-size: 11px; font-weight: 400; color: var(--c-text2); margin-left: 3px; }
-.kpi-sub { font-size: 10px; color: var(--c-text2); margin-top: 3px; }
+.kpi-label { font-size: 10px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 800; color: var(--c-text); line-height: 1; }
+.kpi-value .unit { font-size: 13px; font-weight: 400; color: var(--c-text2); margin-left: 3px; }
+.kpi-sub { font-size: 11px; color: var(--c-text2); margin-top: 4px; }
 .kpi-card.highlight .kpi-value { color: var(--c-sun); }
 .kpi-card.green-card .kpi-value { color: var(--c-green); }
 
-.placement-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 14px; }
-.placement-card { background: var(--c-surface2); border: 2px solid var(--c-border); border-radius: var(--r2); padding: 8px 6px; text-align: center; cursor: pointer; transition: all 0.15s; }
+.placement-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-bottom: 18px; }
+.placement-card { background: var(--c-surface2); border: 2px solid var(--c-border); border-radius: var(--r2); padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.15s; }
 .placement-card:hover { border-color: var(--c-sun); }
 .placement-card.active { border-color: var(--c-sun); background: var(--c-sun-glow); }
-.placement-icon { font-size: 20px; margin-bottom: 4px; }
-.placement-name { font-size: 10px; font-weight: 700; }
-.placement-coeff { font-size: 9px; color: var(--c-text2); margin-top: 2px; }
+.placement-icon { font-size: 22px; margin-bottom: 5px; }
+.placement-name { font-size: 11px; font-weight: 700; }
+.placement-coeff { font-size: 10px; color: var(--c-text2); margin-top: 2px; }
 
-.chart-wrap { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r); padding: 14px; margin-bottom: 12px; }
-.chart-title { font-size: 10px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 12px; }
-.canvas-box { position: relative; width: 100%; }
-#sec2 .canvas-box { height: 380px; }
-#sec3 .canvas-box { height: 200px; }
+.chart-wrap { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r); padding: 20px; margin-bottom: 16px; }
+.chart-title { font-size: 11px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
+.canvas-box { position: relative; width: 100%; height: 420px; }
 
-.scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-.scenario-card { background: var(--c-surface2); border: 2px solid var(--c-border); border-radius: var(--r2); padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; }
+.scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.scenario-card { background: var(--c-surface2); border: 2px solid var(--c-border); border-radius: var(--r2); padding: 18px; cursor: pointer; transition: all 0.15s; position: relative; }
 .scenario-card:hover { border-color: var(--c-sun); }
 .scenario-card.selected { border-color: var(--c-sun); background: var(--c-sun-glow); }
-.sc-badge { position: absolute; top: 10px; right: 10px; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-.sc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.sc-num { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
-.sc-name { font-size: 13px; font-weight: 700; }
-.sc-tag { font-size: 10px; color: var(--c-text2); margin-top: 1px; }
-.sc-desc { font-size: 11px; color: var(--c-text2); margin-bottom: 10px; line-height: 1.4; }
-.sc-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-.sc-metric { background: var(--c-surface); border-radius: 6px; padding: 6px 8px; border: 1px solid var(--c-border); }
-.sc-metric-label { font-size: 8px; color: var(--c-text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
-.sc-metric-val { font-size: 12px; font-weight: 700; margin-top: 2px; color: var(--c-sun); }
+.sc-badge { position: absolute; top: 14px; right: 14px; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+.sc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sc-num { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+.sc-name { font-size: 14px; font-weight: 700; }
+.sc-tag { font-size: 11px; color: var(--c-text2); margin-top: 1px; }
+.sc-desc { font-size: 12px; color: var(--c-text2); margin-bottom: 12px; line-height: 1.5; }
+.sc-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.sc-metric { background: var(--c-surface); border-radius: 6px; padding: 8px 10px; border: 1px solid var(--c-border); }
+.sc-metric-label { font-size: 9px; color: var(--c-text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+.sc-metric-val { font-size: 13px; font-weight: 700; margin-top: 2px; color: var(--c-sun); }
 
 .scenario-mode-btn { transition: all 0.2s ease; }
 .scenario-mode-btn:hover { transform: translateY(-1px); }
 .scenario-mode-btn.active { box-shadow: 0 2px 6px rgba(245,158,11,0.3); }
 
-.info-box { border-radius: var(--r); padding: 8px 12px; margin-bottom: 10px; display: flex; gap: 8px; align-items: flex-start; font-size: 12px; }
+.info-box { border-radius: var(--r); padding: 12px 16px; margin-bottom: 14px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
 .info-box.yellow { background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; }
 .info-box.green { background: #D1FAE5; border: 1px solid #A7F3D0; color: #065F46; }
 .info-box.blue { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; }
-.info-icon { font-size: 14px; flex-shrink: 0; margin-top: 0; }
+.info-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
 
-.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.data-table th { padding: 6px 10px; text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--c-text2); border-bottom: 1px solid var(--c-border); background: var(--c-surface2); }
-.data-table td { padding: 7px 10px; border-bottom: 1px solid var(--c-border2); }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--c-text2); border-bottom: 1px solid var(--c-border); background: var(--c-surface2); }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--c-border2); }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table .num { font-weight: 700; font-size: 13px; text-align: right; }
+.data-table .num { font-weight: 700; font-size: 15px; text-align: right; }
 .data-table .sun { color: var(--c-sun); }
 .data-table .green { color: var(--c-green); }
 
-.btn { padding: 8px 16px; border-radius: var(--r); font-size: 12px; font-weight: 700; cursor: pointer; border: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font); }
+.btn { padding: 10px 20px; border-radius: var(--r); font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 7px; font-family: var(--font); }
 .btn-primary { background: linear-gradient(135deg, var(--c-sun), var(--c-sun2)); color: white; }
 .btn-primary:hover { filter: brightness(1.05); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
 .btn-outline { background: transparent; border: 1px solid var(--c-border); color: var(--c-text2); }
 .btn-outline:hover { border-color: var(--c-sun); color: var(--c-sun); }
 .btn-ghost { background: transparent; color: var(--c-text2); }
 .btn-ghost:hover { color: var(--c-sun); }
-.btn-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.btn-row { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 
-.mode-switch { display: flex; background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r); padding: 2px; margin-bottom: 14px; }
-.mode-btn { flex: 1; padding: 6px 10px; text-align: center; cursor: pointer; border-radius: 5px; font-size: 11px; font-weight: 600; color: var(--c-text2); transition: all 0.15s; border: none; background: none; font-family: var(--font); }
+.mode-switch { display: flex; background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r); padding: 3px; margin-bottom: 18px; }
+.mode-btn { flex: 1; padding: 7px 12px; text-align: center; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--c-text2); transition: all 0.15s; border: none; background: none; font-family: var(--font); }
 .mode-btn.active { background: var(--c-sun); color: white; }
 
-.orient-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
-.orient-btn { padding: 6px 4px; text-align: center; border-radius: var(--r); border: 1px solid var(--c-border); background: var(--c-surface2); cursor: pointer; font-size: 10px; font-weight: 600; color: var(--c-text2); transition: all 0.15s; }
+.orient-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.orient-btn { padding: 8px 6px; text-align: center; border-radius: var(--r); border: 1px solid var(--c-border); background: var(--c-surface2); cursor: pointer; font-size: 11px; font-weight: 600; color: var(--c-text2); transition: all 0.15s; }
 .orient-btn.active { border-color: var(--c-sun); background: var(--c-sun-glow); color: var(--c-sun); }
-.orient-coeff { font-size: 9px; color: var(--c-text3); margin-top: 2px; }
+.orient-coeff { font-size: 10px; color: var(--c-text3); margin-top: 2px; }
 
-.report-preview { background: white; border-radius: var(--r2); overflow: hidden; margin-bottom: 16px; border: 1px solid var(--c-border); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-.rp-header { background: linear-gradient(135deg, #0F172A, #1E293B); padding: 20px 24px; color: white; }
-.rp-logo-row { display: flex; justify-content: space-between; margin-bottom: 16px; }
-.rp-logo-box { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 5px 12px; font-weight: 700; font-size: 13px; color: var(--c-sun); }
-.rp-date { font-size: 10px; color: rgba(255,255,255,0.5); }
-.rp-h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.report-preview { background: white; border-radius: var(--r2); overflow: hidden; margin-bottom: 20px; border: 1px solid var(--c-border); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.rp-header { background: linear-gradient(135deg, #0F172A, #1E293B); padding: 28px 32px; color: white; }
+.rp-logo-row { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.rp-logo-box { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 6px 14px; font-weight: 700; font-size: 14px; color: var(--c-sun); }
+.rp-date { font-size: 11px; color: rgba(255,255,255,0.5); }
+.rp-h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
 .rp-h1 span { color: var(--c-sun); }
-.rp-object { font-size: 12px; color: rgba(255,255,255,0.6); }
+.rp-object { font-size: 13px; color: rgba(255,255,255,0.6); }
 .rp-kpis { display: grid; grid-template-columns: repeat(3,1fr); }
-.rp-kpi { padding: 12px 16px; border-right: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); background: white; }
+.rp-kpi { padding: 16px 20px; border-right: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); background: white; }
 .rp-kpi:nth-child(3n) { border-right: none; }
-.rp-kpi-label { font-size: 9px; color: var(--c-text2); text-transform: uppercase; font-weight: 700; letter-spacing: 0.7px; }
-.rp-kpi-val { font-size: 18px; font-weight: 800; color: #1E293B; margin-top: 3px; }
-.rp-kpi-val .rp-unit { font-size: 10px; font-weight: 400; color: #64748B; }
-.rp-body { padding: 20px 24px; }
-.rp-section-title { font-size: 13px; font-weight: 700; color: #1E293B; border-bottom: 2px solid var(--c-sun); padding-bottom: 4px; margin: 16px 0 8px; }
-.rp-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #F1F5F9; font-size: 12px; }
+.rp-kpi-label { font-size: 10px; color: var(--c-text2); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; }
+.rp-kpi-val { font-size: 22px; font-weight: 800; color: #1E293B; margin-top: 4px; }
+.rp-kpi-val .rp-unit { font-size: 12px; font-weight: 400; color: #64748B; }
+.rp-body { padding: 24px 32px; }
+.rp-section-title { font-size: 14px; font-weight: 700; color: #1E293B; border-bottom: 2px solid var(--c-sun); padding-bottom: 6px; margin: 20px 0 12px; }
+.rp-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
 .rp-row-label { color: #64748B; }
 .rp-row-val { font-weight: 600; color: #1E293B; }
-.rp-cta { background: linear-gradient(135deg, #0F172A, #1E293B); padding: 16px 24px; color: white; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.rp-cta-text h3 { color: var(--c-sun); font-size: 14px; margin-bottom: 3px; }
-.rp-cta-text p { font-size: 10px; color: rgba(255,255,255,0.6); }
-.rp-contacts { font-size: 10px; text-align: right; line-height: 1.5; color: rgba(255,255,255,0.8); }
-.rp-disclaimer { font-size: 8px; color: #94A3B8; padding: 12px 24px 16px; font-style: italic; }
+.rp-cta { background: linear-gradient(135deg, #0F172A, #1E293B); padding: 20px 32px; color: white; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.rp-cta-text h3 { color: var(--c-sun); font-size: 16px; margin-bottom: 4px; }
+.rp-cta-text p { font-size: 11px; color: rgba(255,255,255,0.6); }
+.rp-contacts { font-size: 11px; text-align: right; line-height: 1.6; color: rgba(255,255,255,0.8); }
+.rp-disclaimer { font-size: 9px; color: #94A3B8; padding: 16px 32px 20px; font-style: italic; }
 
-.lead-form { background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 16px; margin-bottom: 16px; }
-.lead-form h3 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
-.lead-form p { font-size: 12px; color: var(--c-text2); margin-bottom: 14px; }
+.lead-form { background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 24px; margin-bottom: 20px; }
+.lead-form h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.lead-form p { font-size: 13px; color: var(--c-text2); margin-bottom: 18px; }
 
-.compare-wrap { overflow-x: auto; margin-bottom: 12px; }
-.compare-table { min-width: 600px; width: 100%; border-collapse: collapse; font-size: 11px; }
-.compare-table th { padding: 8px 10px; text-align: center; font-weight: 700; font-size: 10px; background: var(--c-surface2); color: var(--c-text2); border-bottom: 1px solid var(--c-border); }
-.compare-table td { padding: 7px 10px; border-bottom: 1px solid var(--c-border2); text-align: center; }
+.compare-wrap { overflow-x: auto; margin-bottom: 16px; }
+.compare-table { min-width: 700px; width: 100%; border-collapse: collapse; font-size: 12px; }
+.compare-table th { padding: 10px 14px; text-align: center; font-weight: 700; font-size: 11px; background: var(--c-surface2); color: var(--c-text2); border-bottom: 1px solid var(--c-border); }
+.compare-table td { padding: 9px 14px; border-bottom: 1px solid var(--c-border2); text-align: center; }
 .compare-table .row-label { text-align: left; color: var(--c-text2); font-weight: 500; }
+.compare-table .best { background: rgba(16,185,129,0.08); color: #10B981; font-weight: 700; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-.modal { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 24px; max-width: 360px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-.modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-.modal p { font-size: 12px; color: var(--c-text2); margin-bottom: 16px; }
+.modal { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 28px; max-width: 380px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.modal p { font-size: 13px; color: var(--c-text2); margin-bottom: 20px; }
 
-.badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
 .badge-green { background: #D1FAE5; color: #065F46; }
 .badge-yellow { background: #FEF3C7; color: #92400E; }
 .badge-red { background: #FEE2E2; color: #991B1B; }
 .badge-blue { background: #EFF6FF; color: #1E40AF; }
 
-.divider { height: 1px; background: var(--c-border); margin: 12px 0; }
+.divider { height: 1px; background: var(--c-border); margin: 16px 0; }
 
 @media (max-width: 768px) {
   .grid-2 { grid-template-columns: 1fr; }
@@ -248,8 +247,7 @@ select.inp { cursor: pointer; }
   .topbar { padding: 0 12px; }
   .tabs-nav { padding: 0 8px; }
   .tab-btn { padding: 10px 12px; font-size: 12px; }
-  #sec2 .canvas-box { height: 320px; }
-  #sec3 .canvas-box { height: 180px; }
+  .canvas-box { height: 360px; }
 }
 </style>
 </head>
@@ -303,7 +301,7 @@ select.inp { cursor: pointer; }
           <option value="4.7">Автономна Республіка Крим</option><option value="3.9">Вінницька обл.</option><option value="3.8">Волинська обл.</option><option value="4.0">Дніпропетровська обл.</option><option value="4.0">Донецька обл.</option><option value="3.8">Житомирська обл.</option><option value="4.1">Закарпатська обл.</option><option value="4.3">Запорізька обл.</option><option value="3.9">Івано-Франківська обл.</option><option value="4.0" selected>Київська обл.</option><option value="3.9">Кіровоградська обл.</option><option value="4.0">Луганська обл.</option><option value="3.7">Львівська обл.</option><option value="4.2">Миколаївська обл.</option><option value="4.7">Одеська обл.</option><option value="4.0">Полтавська обл.</option><option value="3.8">Рівненська обл.</option><option value="4.0">Сумська обл.</option><option value="3.9">Тернопільська обл.</option><option value="4.2">Харківська обл.</option><option value="4.3">Херсонська обл.</option><option value="4.0">Хмельницька обл.</option><option value="3.9">Черкаська обл.</option><option value="3.8">Чернівецька обл.</option><option value="3.8">Чернігівська обл.</option><option value="4.0">м. Київ</option>
         </select>
       </div>
-      <div class="kpi-grid" style="margin-top:8px;grid-template-columns:1fr 1fr;">
+      <div class="kpi-grid" style="margin-top:12px;grid-template-columns:1fr 1fr;">
         <div class="kpi-card highlight"><div class="kpi-label">PSH</div><div class="kpi-value" id="kpi-psh">4.0 <span class="unit">год/день</span></div></div>
         <div class="kpi-card"><div class="kpi-label"><span data-uk="Генерація / кВп" data-en="Generation / kWp">Генерація / кВп</span></div><div class="kpi-value" id="kpi-gen-kwp">1150 <span class="unit">кВт·год/рік</span></div></div>
       </div>
@@ -381,7 +379,7 @@ select.inp { cursor: pointer; }
             <div class="orient-btn" onclick="setOrient('N',0.60,this)"><span data-uk="Північ" data-en="North">Північ</span><div class="orient-coeff">×0.60</div></div>
           </div>
         </div>
-        <div class="field-group" style="margin-top:10px;">
+        <div class="field-group" style="margin-top:14px;">
           <div class="field-label"><span data-uk="Кут нахилу панелей" data-en="Panel tilt angle">Кут нахилу панелей</span><span class="tooltip-icon" data-tip="Оптимальний кут для України: 30–35°.">ⓘ</span></div>
           <div class="slider-row"><input type="range" class="slider" id="tiltSlider" min="0" max="90" value="30" oninput="document.getElementById('tiltVal').textContent=this.value+'°'; debouncedRecalc();"><span class="slider-val" id="tiltVal">30°</span></div>
         </div>
@@ -412,29 +410,30 @@ select.inp { cursor: pointer; }
     <div class="kpi-card"><div class="kpi-label"><span data-uk="Потужність через 25 р." data-en="Power after 25 years">Потужність через 25 р.</span></div><div class="kpi-value" id="r-degrad">88.2 <span class="unit">%</span></div><div class="kpi-sub">−0.5% / рік</div></div>
   </div>
   
-  <div style="margin-bottom: 16px;">
-    <div style="font-size: 11px; font-weight: 600; color: var(--c-text2); margin-bottom: 6px;"><span data-uk="Режим роботи СЕС:" data-en="SES operating mode:">Режим роботи СЕС:</span></div>
+  <div style="margin-bottom: 20px;">
+    <div style="font-size: 12px; font-weight: 600; color: var(--c-text2); margin-bottom: 8px;"><span data-uk="Режим роботи СЕС:" data-en="SES operating mode:">Режим роботи СЕС:</span></div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-      <button class="scenario-mode-btn active" data-scenario="curtailment" onclick="setScenarioMode('curtailment')" style="padding: 5px 12px; border-radius: 20px; border: 1px solid var(--c-border); background: var(--c-sun); color: white; font-size: 11px; font-weight: 500; cursor: pointer;">🔌 <span data-uk="Обмеження видачі" data-en="Curtailment">Обмеження видачі</span></button>
-      <button class="scenario-mode-btn" data-scenario="feedin" onclick="setScenarioMode('feedin')" style="padding: 5px 12px; border-radius: 20px; border: 1px solid var(--c-border); background: var(--c-surface2); color: var(--c-text2); font-size: 11px; font-weight: 500; cursor: pointer;">💰 <span data-uk="Продаж у мережу" data-en="Feed-in">Продаж у мережу</span></button>
+      <button class="scenario-mode-btn active" data-scenario="curtailment" onclick="setScenarioMode('curtailment')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid var(--c-border); background: var(--c-sun); color: white; font-size: 12px; font-weight: 500; cursor: pointer;">🔌 <span data-uk="Обмеження видачі" data-en="Curtailment">Обмеження видачі</span></button>
+      <button class="scenario-mode-btn" data-scenario="feedin" onclick="setScenarioMode('feedin')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid var(--c-border); background: var(--c-surface2); color: var(--c-text2); font-size: 12px; font-weight: 500; cursor: pointer;">💰 <span data-uk="Продаж у мережу" data-en="Feed-in">Продаж у мережу</span></button>
     </div>
   </div>
   
   <div class="chart-wrap">
-    <div class="chart-title"><span data-uk="Місячний баланс електроенергії" data-en="Monthly electricity balance">Місячний баланс електроенергії</span></div>
-    <div class="canvas-box" style="height:380px;">
+    <div class="chart-title">⚡ <span data-uk="Місячний баланс електроенергії: генерація, споживання та надлишок" data-en="Monthly electricity balance: generation, consumption and surplus">Місячний баланс електроенергії: генерація, споживання та надлишок</span></div>
+    <div class="canvas-box" style="height:420px;">
       <canvas id="chartMonthly"></canvas>
     </div>
   </div>
   
-  <div style="display: flex; justify-content: center; gap: 16px; margin-top: 10px; flex-wrap: wrap;">
-    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #F59E0B; border-radius: 4px;"></div><span style="font-size: 10px;"><span data-uk="Генерація СЕС" data-en="SES generation">Генерація СЕС</span></span></div>
-    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #10B981; border-radius: 4px;"></div><span style="font-size: 10px;"><span data-uk="Споживання з мережі" data-en="Grid consumption">Споживання з мережі</span></span></div>
-    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #EF4444; border-radius: 4px;"></div><span style="font-size: 10px;"><span data-uk="Надлишок" data-en="Surplus">Надлишок</span></span></div>
+  <div style="display: flex; justify-content: center; gap: 24px; margin-top: 16px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 20px; height: 20px; background: #F59E0B; border-radius: 4px;"></div><span style="font-size: 12px;"><span data-uk="Генерація СЕС (використана)" data-en="SES generation (used)">Генерація СЕС (використана)</span></span></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 20px; height: 20px; background: #10B981; border-radius: 4px;"></div><span style="font-size: 12px;"><span data-uk="Споживання з мережі (купуємо)" data-en="Grid consumption (purchased)">Споживання з мережі (купуємо)</span></span></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 20px; height: 20px; background: #EF4444; border-radius: 4px;"></div><span style="font-size: 12px;"><span data-uk="Надлишок (обрізається)" data-en="Surplus (curtailed)">Надлишок (обрізається)</span></span></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 20px; height: 20px; background: #3B82F6; border-radius: 4px;"></div><span style="font-size: 12px;"><span data-uk="Продаж у мережу (дохід)" data-en="Feed-in (income)">Продаж у мережу (дохід)</span></span></div>
   </div>
 </section>
 
-<!-- ФІНАНСОВИЙ АНАЛІЗ -->
+<!-- SECTION 4 - ФІНАНСОВИЙ АНАЛІЗ - ВИПРАВЛЕНО -->
 <section class="section" id="sec3">
   <div class="sec-title">💰 <span class="secTitleText" data-uk="Фінансовий" data-en="Financial">Фінансовий</span> <span class="accent"><span class="secTitleAccent" data-uk="аналіз" data-en="analysis">аналіз</span></span></div>
   <div class="sec-desc"><span class="secDescText" data-uk="CAPEX, OPEX, строк окупності та порівняння варіантів." data-en="CAPEX, OPEX, payback period and comparison of options.">CAPEX, OPEX, строк окупності та порівняння варіантів.</span></div>
@@ -450,7 +449,7 @@ select.inp { cursor: pointer; }
           <option value="70000">Гібридна (готовність до батарей)</option>
         </select>
       </div>
-      <div class="field-group"><div class="field-label"><span data-uk="Довжина кабельної траси" data-en="Cable length">Довжина кабельної траси</span></div><div class="inp-unit"><input class="inp" type="number" id="cableLen" value="50" min="0" step="10" oninput="debouncedRecalc()"><span class="unit-label">м</span></div></div>
+      <div class="field-group"><div class="field-label"><span data-uk="Довжина кабельної траси" data-en="Cable length">Довжина кабельної траси</span><span class="tooltip-icon" data-tip="~300 грн/м орієнтовно.">ⓘ</span></div><div class="inp-unit"><input class="inp" type="number" id="cableLen" value="50" min="0" step="10" oninput="debouncedRecalc()"><span class="unit-label">м</span></div></div>
       <div class="field-group"><div class="field-label"><span data-uk="Вартість трансформатора" data-en="Transformer cost">Вартість трансформатора</span></div><div class="inp-unit"><input class="inp" type="number" id="transformerCost" value="0" min="0" step="10000" oninput="debouncedRecalc()"><span class="unit-label">₴</span></div></div>
       <div class="toggle-row"><div class="toggle" id="bessToggle" onclick="toggleBESS()"></div><span class="toggle-label"><span data-uk="Додати батарею (BESS)?" data-en="Add battery (BESS)?">Додати батарею (BESS)?</span></span></div>
       <div id="bessFields" style="display:none;"><div class="field-group"><div class="field-label"><span data-uk="Ємність батареї" data-en="Battery capacity">Ємність батареї</span></div><div class="inp-unit"><input class="inp" type="number" id="bessKwh" value="100" min="10" step="10" oninput="debouncedRecalc()"><span class="unit-label">кВт·год</span></div></div></div>
@@ -467,8 +466,8 @@ select.inp { cursor: pointer; }
     </div>
     
     <div class="card">
-      <div class="card-title"><span data-uk="Результати аналізу" data-en="Analysis results">Результати аналізу</span></div>
-      <div class="kpi-grid" style="grid-template-columns:1fr 1fr; gap:8px;">
+      <div class="card-title"><span data-uk="Результати фінансового аналізу" data-en="Financial analysis results">Результати фінансового аналізу</span></div>
+      <div class="kpi-grid" style="grid-template-columns:1fr 1fr;">
         <div class="kpi-card green-card"><div class="kpi-label"><span data-uk="Річна економія" data-en="Annual savings">Річна економія</span></div><div class="kpi-value" id="r-saving-y1">—</div></div>
         <div class="kpi-card highlight"><div class="kpi-label"><span data-uk="Строк окупності" data-en="Payback period">Строк окупності</span></div><div class="kpi-value" id="r-payback">— <span class="unit">р.</span></div></div>
         <div class="kpi-card"><div class="kpi-label">NPV 25 р.</div><div class="kpi-value" id="r-npv">—</div></div>
@@ -481,14 +480,14 @@ select.inp { cursor: pointer; }
   </div>
   
   <div class="grid-2">
-    <div class="chart-wrap"><div class="chart-title"><span data-uk="Грошовий потік (25 років)" data-en="Cash flow (25 years)">Грошовий потік (25 років)</span></div><div class="canvas-box" style="height:200px;"><canvas id="chartCashflow"></canvas></div></div>
-    <div class="chart-wrap"><div class="chart-title"><span data-uk="Структура CAPEX" data-en="CAPEX structure">Структура CAPEX</span></div><div class="canvas-box" style="height:200px;"><canvas id="chartCapex"></canvas></div></div>
+    <div class="chart-wrap"><div class="chart-title"><span data-uk="Накопичений грошовий потік (25 років)" data-en="Accumulated cash flow (25 years)">Накопичений грошовий потік (25 років)</span></div><div class="canvas-box" style="height:240px;"><canvas id="chartCashflow"></canvas></div></div>
+    <div class="chart-wrap"><div class="chart-title"><span data-uk="Структура CAPEX" data-en="CAPEX structure">Структура CAPEX</span></div><div class="canvas-box" style="height:240px;"><canvas id="chartCapex"></canvas></div></div>
   </div>
   
   <div class="card">
     <div class="card-title"><span data-uk="Порівняння: з СЕС vs без СЕС" data-en="Comparison: with SES vs without SES">Порівняння: з СЕС vs без СЕС</span></div>
-    <table class="data-table"><thead><tr><th></th><th><span data-uk="Без СЕС" data-en="Without SES">Без СЕС</span></th><th><span data-uk="З СЕС" data-en="With SES">З СЕС</span></th><th><span data-uk="Вигода" data-en="Benefit">Вигода</span></th></tr></thead><tbody>
-      <tr><td><span data-uk="Витрати за 25 р." data-en="Costs for 25 years">Витрати за 25 р.</span></td><td class="num" id="cmp-without">—</td><td class="num" id="cmp-with">—</td><td class="num green" id="cmp-diff">—</td></tr>
+    <table class="data-table"><thead><tr><th></th><th><span data-uk="Без СЕС" data-en="Without SES">Без СЕС</span></th><th><span data-uk="З СЕС" data-en="With SES">З СЕС</span></th><th><span data-uk="Різниця (вигода)" data-en="Difference (benefit)">Різниця (вигода)</span></th></tr></thead><tbody>
+      <tr><td><span data-uk="Витрати на ел-ку за 25 р." data-en="Electricity costs for 25 years">Витрати на ел-ку за 25 р.</span></td><td class="num" id="cmp-without">—</td><td class="num" id="cmp-with">—</td><td class="num green" id="cmp-diff">—</td></tr>
       <tr><td><span data-uk="Вартість кВт·год" data-en="Cost per kWh">Вартість кВт·год</span></td><td class="num" id="cmp-tariff-now">—</td><td class="num" id="cmp-lcoe">—</td><td class="num green" id="cmp-lcoe-diff">—</td></tr>
     </tbody>
   </div>
@@ -504,7 +503,7 @@ select.inp { cursor: pointer; }
     <div class="scenario-card" onclick="selectScenario(1)" id="sc1"><span class="sc-badge badge badge-green">Feed-in</span><div class="sc-header"><div class="sc-num" style="background:rgba(16,185,129,0.15);color:#10B981;">02</div><div><div class="sc-name"><span data-uk="СЕС з продажем у мережу" data-en="SES with feed-in">СЕС з продажем у мережу</span></div><div class="sc-tag"><span data-uk="Монетизація надлишку" data-en="Surplus monetization">Монетизація надлишку</span></div></div></div><div class="sc-desc"><span data-uk="Надлишок передається в мережу за ринковою ціною." data-en="Surplus is fed into the grid at market price.">Надлишок передається в мережу за ринковою ціною.</span></div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc1-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Окупність" data-en="Payback">Окупність</span></div><div class="sc-metric-val" id="sc1-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Резерв" data-en="Reserve">Резерв</span></div><div class="sc-metric-val" style="color:var(--c-red);">0 <span data-uk="год" data-en="h">год</span></div></div></div></div>
     <div class="scenario-card" onclick="selectScenario(2)" id="sc2"><span class="sc-badge badge badge-yellow">Hybrid+BESS</span><div class="sc-header"><div class="sc-num" style="background:rgba(245,158,11,0.15);color:var(--c-sun);">03</div><div><div class="sc-name"><span data-uk="СЕС + Батарея (BESS)" data-en="SES + Battery (BESS)">СЕС + Батарея (BESS)</span></div><div class="sc-tag"><span data-uk="Енергонезалежність" data-en="Energy independence">Енергонезалежність</span></div></div></div><div class="sc-desc"><span data-uk="Акумулятор накопичує надлишок вдень і живить об'єкт вночі або під час відключень." data-en="The battery stores surplus during the day and powers the facility at night or during outages.">Акумулятор накопичує надлишок вдень і живить об'єкт вночі або під час відключень.</span></div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc2-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Окупність" data-en="Payback">Окупність</span></div><div class="sc-metric-val" id="sc2-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Резерв" data-en="Reserve">Резерв</span></div><div class="sc-metric-val" style="color:var(--c-green);" id="sc2-reserve">—</div></div></div></div>
     <div class="scenario-card" onclick="selectScenario(3)" id="sc3"><span class="sc-badge badge badge-red">Solar+DG</span><div class="sc-header"><div class="sc-num" style="background:rgba(239,68,68,0.15);color:#EF4444;">04</div><div><div class="sc-name"><span data-uk="СЕС + Дизельний генератор" data-en="SES + Diesel generator">СЕС + Дизельний генератор</span></div><div class="sc-tag"><span data-uk="Економія пального" data-en="Fuel savings">Економія пального</span></div></div></div><div class="sc-desc"><span data-uk="СЕС розвантажує ДГ вдень — зменшує витрату пального на 40–60%." data-en="SES relieves the DG during the day - reduces fuel consumption by 40-60%.">СЕС розвантажує ДГ вдень — зменшує витрату пального на 40–60%.</span></div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc3-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Окупність" data-en="Payback">Окупність</span></div><div class="sc-metric-val" id="sc3-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Економія" data-en="Savings">Економія</span></div><div class="sc-metric-val" style="color:var(--c-green);" id="sc3-fuel">—</div></div></div></div>
-    <div class="scenario-card" onclick="selectScenario(4)" id="sc4" style="grid-column:1/-1;"><span class="sc-badge badge badge-yellow">⭐ Premium</span><div class="sc-header"><div class="sc-num" style="background:rgba(245,158,11,0.2);color:var(--c-sun);">05</div><div><div class="sc-name"><span data-uk="СЕС + ДГ + Батарея (Комбо)" data-en="SES + DG + Battery (Combo)">СЕС + ДГ + Батарея (Комбо)</span></div><div class="sc-tag"><span data-uk="Максимальна надійність · 24–72 год автономності" data-en="Maximum reliability · 24-72 hours of autonomy">Максимальна надійність · 24–72 год автономності</span></div></div></div><div class="sc-desc"><span data-uk="Повна тріада: СЕС + батарея + ДГ як резерв резерву." data-en="Full triad: SES + battery + DG as backup reserve.">Повна тріада: СЕС + батарея + ДГ як резерв резерву.</span></div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc4-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Окупність" data-en="Payback">Окупність</span></div><div class="sc-metric-val" id="sc4-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Автономність" data-en="Autonomy">Автономність</span></div><div class="sc-metric-val" style="color:var(--c-green);" id="sc4-reserve">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Економія/рік" data-en="Savings/year">Економія/рік</span></div><div class="sc-metric-val" id="sc4-saving">—</div></div></div></div>
+    <div class="scenario-card" onclick="selectScenario(4)" id="sc4" style="grid-column:1/-1;"><span class="sc-badge badge badge-yellow">⭐ Premium</span><div class="sc-header"><div class="sc-num" style="background:rgba(245,158,11,0.2);color:var(--c-sun);">05</div><div><div class="sc-name"><span data-uk="СЕС + ДГ + Батарея (Комбо)" data-en="SES + DG + Battery (Combo)">СЕС + ДГ + Батарея (Комбо)</span></div><div class="sc-tag"><span data-uk="Максимальна надійність · 24–72 год автономності" data-en="Maximum reliability · 24-72 hours of autonomy">Максимальна надійність · 24–72 год автономності</span></div></div></div><div class="sc-desc"><span data-uk="Повна тріада: СЕС + батарея + ДГ як резерв резерву. Пріоритет: Мережа → СЕС → BESS → ДГ." data-en="Full triad: SES + battery + DG as backup reserve. Priority: Grid → SES → BESS → DG.">Повна тріада: СЕС + батарея + ДГ як резерв резерву. Пріоритет: Мережа → СЕС → BESS → ДГ.</span></div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc4-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Окупність" data-en="Payback">Окупність</span></div><div class="sc-metric-val" id="sc4-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Автономність" data-en="Autonomy">Автономність</span></div><div class="sc-metric-val" style="color:var(--c-green);" id="sc4-reserve">—</div></div><div class="sc-metric"><div class="sc-metric-label"><span data-uk="Економія/рік" data-en="Savings/year">Економія/рік</span></div><div class="sc-metric-val" id="sc4-saving">—</div></div></div></div>
   </div>
   
   <div class="card">
@@ -516,9 +515,9 @@ select.inp { cursor: pointer; }
 <!-- SECTION 6 - ЗВІТ -->
 <section class="section" id="sec5">
   <div class="sec-title">📄 PDF <span class="accent"><span class="secTitleAccent" data-uk="Звіт" data-en="Report">Звіт</span></span></div>
-  <div class="sec-desc"><span class="secDescText" data-uk="Завантажте брендований попередній розрахунок" data-en="Download a branded preliminary calculation">Завантажте брендований попередній розрахунок</span></div>
+  <div class="sec-desc"><span class="secDescText" data-uk="Завантажте брендований попередній розрахунок для презентації керівництву." data-en="Download a branded preliminary calculation to present to management.">Завантажте брендований попередній розрахунок для презентації керівництву.</span></div>
   
-  <div class="lead-form"><h3><span data-uk="Ваші дані для звіту" data-en="Your data for the report">Ваші дані для звіту</span> <span style="color:var(--c-text2);font-size:11px;font-weight:400;">(<span data-uk="опційно" data-en="optional">опційно</span>)</span></h3><p><span data-uk="Заповніть для персоналізованого звіту" data-en="Fill out for a personalized report">Заповніть для персоналізованого звіту</span></p>
+  <div class="lead-form"><h3><span data-uk="Ваші дані для звіту" data-en="Your data for the report">Ваші дані для звіту</span> <span style="color:var(--c-text2);font-size:12px;font-weight:400;">(<span data-uk="опційно" data-en="optional">опційно</span>)</span></h3><p><span data-uk="Заповніть для персоналізованого звіту, або пропустіть." data-en="Fill out for a personalized report, or skip.">Заповніть для персоналізованого звіту, або пропустіть.</span></p>
     <div class="grid-2">
       <div class="field-group"><div class="field-label"><span data-uk="Ваше ім'я" data-en="Your name">Ваше ім'я</span></div><input class="inp" type="text" id="leadName" placeholder="Іван Іваненко" oninput="updateReport()"></div>
       <div class="field-group"><div class="field-label">Email</div><input class="inp" type="email" id="leadEmail" placeholder="email@company.com"></div>
@@ -527,19 +526,17 @@ select.inp { cursor: pointer; }
     </div>
   </div>
   
-  <div class="report-preview" id="reportPreview"><div class="rp-header"><div class="rp-logo-row"><div class="rp-logo-box">☀️ СЕС КАЛЬКУЛЯТОР</div><div class="rp-date" id="rp-date"></div></div><div class="rp-h1"><span><span data-uk="Попередній розрахунок" data-en="Preliminary calculation">Попередній розрахунок</span></span></div><div class="rp-object" id="rp-object-name"><span data-uk="Об'єкт" data-en="Object">Об'єкт</span>: —</div></div><div class="rp-kpis"><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Потужність СЕС" data-en="SES power">Потужність СЕС</span></div><div class="rp-kpi-val" id="rp-power">—<span class="rp-unit"> кВп</span></div></div><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Річна генерація" data-en="Annual generation">Річна генерація</span></div><div class="rp-kpi-val" id="rp-gen">—<span class="rp-unit"> кВт·год/рік</span></div></div><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Річна економія" data-en="Annual savings">Річна економія</span></div><div class="rp-kpi-val" id="rp-saving">—</div></div><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Вартість інвестиції" data-en="Investment cost">Вартість інвестиції</span></div><div class="rp-kpi-val" id="rp-capex">—</div></div><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Строк окупності" data-en="Payback period">Строк окупності</span></div><div class="rp-kpi-val" id="rp-payback">—<span class="rp-unit"> р.</span></div></div><div class="rp-kpi"><div class="rp-kpi-label">NPV (25 р.)</div><div class="rp-kpi-val" id="rp-npv">—</div></div></div><div class="rp-body"><div class="rp-section-title"><span data-uk="Параметри об'єкта" data-en="Object parameters">Параметри об'єкта</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Об'єкт" data-en="Object">Об'єкт</span></span><span class="rp-row-val" id="rp-r-obj">—</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Регіон / PSH" data-en="Region / PSH">Регіон / PSH</span></span><span class="rp-row-val" id="rp-r-region">—</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Споживання / Тариф" data-en="Consumption / Tariff">Споживання / Тариф</span></span><span class="rp-row-val" id="rp-r-cons">—</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Тип розміщення" data-en="Placement type">Тип розміщення</span></span><span class="rp-row-val" id="rp-r-placement">—</span></div><div class="rp-section-title"><span data-uk="Фінансові показники" data-en="Financial indicators">Фінансові показники</span></div><div class="rp-row"><span class="rp-row-label">CAPEX <span data-uk="загальний" data-en="total">загальний</span></span><span class="rp-row-val" id="rp-f-capex">—</span></div><div class="rp-row"><span class="rp-row-label">IRR / LCOE</span><span class="rp-row-val" id="rp-f-irr">—</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Покриття споживання" data-en="Consumption coverage">Покриття споживання</span></span><span class="rp-row-val" id="rp-f-cover">—</span></div></div><div class="rp-cta"><div class="rp-cta-text"><h3><span data-uk="Замовте консультацію" data-en="Request a consultation">Замовте консультацію</span></h3></div><div class="rp-contacts"><div>📞 +38X XXX XXX XXXX</div><div>✉️ info@company.com</div><div id="rp-lead-info" style="margin-top:6px;color:rgba(255,255,255,0.5);font-size:10px;"></div></div></div><div class="rp-disclaimer"><span data-uk="Розрахунок є орієнтовним. Похибка ±15–25%." data-en="The calculation is indicative. Margin of error ±15-25%.">Розрахунок є орієнтовним. Похибка ±15–25%.</span></div></div>
+  <div class="report-preview" id="reportPreview"><div class="rp-header"><div class="rp-logo-row"><div class="rp-logo-box">☀️ СЕС КАЛЬКУЛЯТОР</div><div class="rp-date" id="rp-date"></div></div><div class="rp-h1"><span><span data-uk="Попередній розрахунок" data-en="Preliminary calculation">Попередній розрахунок</span></span><br><span id="rp-scenario-name"><span data-uk="Сонячної електростанції" data-en="Solar power plant">Сонячної електростанції</span></span></div><div class="rp-object" id="rp-object-name"><span data-uk="Об'єкт" data-en="Object">Об'єкт</span>: —</div></div><div class="rp-kpis"><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Потужність СЕС" data-en="SES power">Потужність СЕС</span></div><div class="rp-kpi-val" id="rp-power">—<span class="rp-unit"> кВп</span></div></div><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Річна генерація" data-en="Annual generation">Річна генерація</span></div><div class="rp-kpi-val" id="rp-gen">—<span class="rp-unit"> кВт·год/рік</span></div></div><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Річна економія" data-en="Annual savings">Річна економія</span></div><div class="rp-kpi-val" id="rp-saving">—</div></div><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Вартість інвестиції" data-en="Investment cost">Вартість інвестиції</span></div><div class="rp-kpi-val" id="rp-capex">—</div></div><div class="rp-kpi"><div class="rp-kpi-label"><span data-uk="Строк окупності" data-en="Payback period">Строк окупності</span></div><div class="rp-kpi-val" id="rp-payback">—<span class="rp-unit"> р.</span></div></div><div class="rp-kpi"><div class="rp-kpi-label">NPV (25 р.)</div><div class="rp-kpi-val" id="rp-npv">—</div></div></div><div class="rp-body"><div class="rp-section-title"><span data-uk="Параметри об'єкта" data-en="Object parameters">Параметри об'єкта</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Об'єкт" data-en="Object">Об'єкт</span></span><span class="rp-row-val" id="rp-r-obj">—</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Регіон / PSH" data-en="Region / PSH">Регіон / PSH</span></span><span class="rp-row-val" id="rp-r-region">—</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Споживання / Тариф" data-en="Consumption / Tariff">Споживання / Тариф</span></span><span class="rp-row-val" id="rp-r-cons">—</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Тип розміщення" data-en="Placement type">Тип розміщення</span></span><span class="rp-row-val" id="rp-r-placement">—</span></div><div class="rp-section-title"><span data-uk="Фінансові показники" data-en="Financial indicators">Фінансові показники</span></div><div class="rp-row"><span class="rp-row-label">CAPEX <span data-uk="загальний" data-en="total">загальний</span></span><span class="rp-row-val" id="rp-f-capex">—</span></div><div class="rp-row"><span class="rp-row-label">IRR / LCOE</span><span class="rp-row-val" id="rp-f-irr">—</span></div><div class="rp-row"><span class="rp-row-label"><span data-uk="Покриття споживання" data-en="Consumption coverage">Покриття споживання</span></span><span class="rp-row-val" id="rp-f-cover">—</span></div></div><div class="rp-cta"><div class="rp-cta-text"><h3><span data-uk="Замовте безкоштовну консультацію" data-en="Request a free consultation">Замовте безкоштовну консультацію</span></h3><p><span data-uk="Наші спеціалісти розроблять детальне ТЕО для вашого об'єкта" data-en="Our specialists will develop a detailed feasibility study for your facility">Наші спеціалісти розроблять детальне ТЕО для вашого об'єкта</span></p></div><div class="rp-contacts"><div>📞 +38X XXX XXX XXXX</div><div>✉️ info@company.com</div><div>🌐 www.company.com</div><div id="rp-lead-info" style="margin-top:8px;color:rgba(255,255,255,0.5);font-size:11px;"></div></div></div><div class="rp-disclaimer"><span data-uk="Розрахунок є орієнтовним і не є комерційною пропозицією. Точні параметри визначаються після виїзного обстеження об'єкта. Похибка ±15–25%." data-en="The calculation is indicative and is not a commercial offer. Exact parameters are determined after an on-site inspection of the facility. Margin of error ±15-25%.">Розрахунок є орієнтовним і не є комерційною пропозицією. Точні параметри визначаються після виїзного обстеження об'єкта. Похибка ±15–25%.</span></div></div>
   
-  <div class="btn-row"><button class="btn btn-primary" onclick="generatePDF()"><span data-uk="📥 Завантажити PDF" data-en="📥 Download PDF">📥 Завантажити PDF</span></button><button class="btn btn-outline" onclick="window.print()"><span data-uk="🖨️ Друкувати" data-en="🖨️ Print">🖨️ Друкувати</span></button><button class="btn btn-ghost" onclick="shareCalc()"><span data-uk="🔗 Поділитися" data-en="🔗 Share">🔗 Поділитися</span></button><button class="btn btn-ghost" onclick="resetAll()" style="color:var(--c-red);"><span data-uk="🔄 Скинути" data-en="🔄 Reset">🔄 Скинути</span></button></div>
-  <div class="info-box yellow" style="margin-top:10px;"><span class="info-icon">⚠️</span><span><span data-uk="PDF генерується у вашому браузері." data-en="PDF is generated in your browser.">PDF генерується у вашому браузері.</span></span></div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="generatePDF()"><span data-uk="📥 Завантажити PDF" data-en="📥 Download PDF">📥 Завантажити PDF</span></button><button class="btn btn-outline" onclick="window.print()"><span data-uk="🖨️ Друкувати" data-en="🖨️ Print">🖨️ Друкувати</span></button><button class="btn btn-ghost" onclick="shareCalc()"><span data-uk="🔗 Поділитися" data-en="🔗 Share">🔗 Поділитися</span></button><button class="btn btn-ghost" onclick="resetAll()" style="color:var(--c-red);"><span data-uk="🔄 Скинути все" data-en="🔄 Reset all">🔄 Скинути все</span></button></div>
+  <div class="info-box yellow" style="margin-top:12px;"><span class="info-icon">⚠️</span><span><span data-uk="PDF генерується у вашому браузері. Дані не надсилаються на сервер." data-en="PDF is generated in your browser. Data is not sent to the server.">PDF генерується у вашому браузері. Дані не надсилаються на сервер.</span></span></div>
 </section>
 
 </main>
 
 <script>
-// JavaScript код залишається без змін (з попередньої версії з повною підтримкою мов)
-// ... (весь JS код з попередньої відповіді)
+// ==================== КОНФІГУРАЦІЯ ====================
 const DEFAULT_EFFICIENCY = 0.85;
-let currentLang = 'uk';
 
 const CONFIG = {
   prices: { onGridRoof: 55000, onGridGround: 50000, onGridLimited: 58000, hybrid: 70000, BESS_per_kWh: 35000, DG_adapter: 15000, cable_per_m: 300 },
@@ -557,6 +554,7 @@ const CONFIG = {
 let state = { placement: 'flatRoof', orientCoeff: 1.0, orient: 'S', calcMode: 'area', dgOn: false, bessOn: false, selectedScenario: -1, R: {} };
 let charts = {};
 let currentScenario = 'curtailment';
+let currentLang = 'uk';
 
 function getPSH() { return parseFloat(document.getElementById('region').value) || 4.0; }
 function fmtN(n, dec=0) { return isNaN(n) || !isFinite(n) ? '—' : n.toLocaleString('uk-UA', {maximumFractionDigits: dec, minimumFractionDigits: dec}); }
@@ -625,12 +623,10 @@ function setLang(lang) {
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.classList.toggle('active', btn.textContent.includes(lang.toUpperCase()));
   });
-  
   document.querySelectorAll('[data-uk][data-en]').forEach(el => {
     if (el.tagName === 'INPUT' || el.tagName === 'SELECT') return;
     el.textContent = lang === 'uk' ? el.getAttribute('data-uk') : el.getAttribute('data-en');
   });
-  
   document.querySelectorAll('.placement-card .placement-name').forEach((el, idx) => {
     const keys = ['flatRoof', 'slopedRoof', 'ground', 'facade', 'carport'];
     const key = keys[idx];
@@ -638,7 +634,6 @@ function setLang(lang) {
       el.textContent = lang === 'uk' ? CONFIG.placement[key].name : CONFIG.placement[key].nameEn;
     }
   });
-  
   updateReport();
   if (state.R.annualGen && state.R.annual) {
     updateChartMonthly(state.R.annualGen, state.R.annual);
@@ -761,7 +756,7 @@ function recalcAll() {
   document.getElementById('r-lcoe').textContent = lcoe.toFixed(2) + ' ₴/кВт·год';
   document.getElementById('r-opex').textContent = fmtC(opex) + '/рік';
   
-  const insight = payback < 6 ? '✅ Відмінна інвестиція! Окупність ' + payback.toFixed(1) + ' р.' : (payback < 10 ? '📊 Хороша інвестиція. Окупність ' + payback.toFixed(1) + ' р.' : '⚠️ Строк окупності ' + payback.toFixed(1) + ' р.');
+  const insight = payback < 6 ? '✅ Відмінна інвестиція! Окупність ' + payback.toFixed(1) + ' р.' : (payback < 10 ? '📊 Хороша інвестиція. Окупність ' + payback.toFixed(1) + ' р.' : '⚠️ Строк окупності ' + payback.toFixed(1) + ' р. Розгляньте зменшення CAPEX.');
   document.getElementById('finance-insight').textContent = insight;
   
   let costWithout = 0;
@@ -862,12 +857,12 @@ function updateChartMonthly(annualGen, annual) {
     data: {
       labels: MONTHS,
       datasets: [
-        { label: currentLang === 'uk' ? '☀️ Генерація СЕС' : '☀️ SES generation', data: usedGen, backgroundColor: '#F59E0B', borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' },
-        { label: currentLang === 'uk' ? '🔌 Споживання з мережі' : '🔌 Grid consumption', data: gridNeeded, backgroundColor: '#10B981', borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' },
+        { label: currentLang === 'uk' ? '☀️ Генерація СЕС (використана)' : '☀️ SES generation (used)', data: usedGen, backgroundColor: '#F59E0B', borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' },
+        { label: currentLang === 'uk' ? '🔌 Споживання з мережі (купуємо)' : '🔌 Grid consumption (purchased)', data: gridNeeded, backgroundColor: '#10B981', borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' },
         { label: surplusLabel, data: surplus, backgroundColor: surplusColor, borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 10 }, boxWidth: 10, padding: 8, usePointStyle: true, pointStyle: 'rect' } }, tooltip: { callbacks: { label: (ctx) => { let label = ctx.dataset.label || ''; let val = ctx.raw; if (val > 0) { return `${label}: ${val.toLocaleString('uk-UA')} kWh`; } return null; } } } }, scales: { x: { ticks: { color: '#475569', font: { size: 10 } }, grid: { color: '#E2E8F0' }, stacked: true }, y: { stacked: true, ticks: { color: '#475569', font: { size: 10 }, callback: v => v.toLocaleString('uk-UA') + ' kWh' }, grid: { color: '#E2E8F0' }, title: { display: true, text: currentLang === 'uk' ? 'кВт·год' : 'kWh', color: '#64748B', font: { size: 10 } } } } }
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 10, usePointStyle: true, pointStyle: 'rect' } }, tooltip: { callbacks: { label: (ctx) => { let label = ctx.dataset.label || ''; let val = ctx.raw; if (val > 0) { if (ctx.datasetIndex === 2 && currentScenario === 'feedin') { const tariff = parseFloat(document.getElementById('tariff').value) || 4.32; return `${label}: ${val.toLocaleString('uk-UA')} кВт·год (≈ ${(val * tariff * 0.7).toLocaleString('uk-UA')} грн)`; } return `${label}: ${val.toLocaleString('uk-UA')} кВт·год`; } return null; } } } }, scales: { x: { ticks: { color: '#475569', font: { size: 11, weight: '500' } }, grid: { color: '#E2E8F0' }, stacked: true }, y: { stacked: true, ticks: { color: '#475569', font: { size: 11 }, callback: v => v.toLocaleString('uk-UA') + ' кВт·год' }, grid: { color: '#E2E8F0' }, title: { display: true, text: 'Електроенергія, кВт·год', color: '#64748B', font: { size: 12 } } } } }
   });
 }
 
@@ -882,13 +877,13 @@ function updateChartCashflow(capex, cf1, growth) {
   let paybackYear = null;
   for (let i=0; i<data.length-1; i++) if (data[i] < 0 && data[i+1] >= 0) { paybackYear = i+1; break; }
   if (charts.cashflow) charts.cashflow.destroy();
-  charts.cashflow = new Chart(ctx, { type: 'line', data: { labels, datasets: [ { label: currentLang === 'uk' ? 'Збитки' : 'Losses', data: negativeData, borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0 }, { label: currentLang === 'uk' ? 'Прибуток' : 'Profit', data: positiveData, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.15)', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { color: '#475569', font: { size: 10 } } }, tooltip: { callbacks: { label: (ctx) => { let val = ctx.raw; if (val === 0) return null; return `${ctx.dataset.label}: ${val.toLocaleString('uk-UA')} UAH`; } } } }, scales: { x: { ticks: { color: '#475569', font: { size: 10 } }, grid: { color: '#E2E8F0' }, title: { display: true, text: currentLang === 'uk' ? 'Рік' : 'Year', color: '#64748B', font: { size: 10 } } }, y: { ticks: { color: '#475569', font: { size: 10 }, callback: v => (v/1000).toFixed(0) + 'k' }, grid: { color: '#E2E8F0' }, title: { display: true, text: 'UAH', color: '#64748B', font: { size: 10 } } } } } });
+  charts.cashflow = new Chart(ctx, { type: 'line', data: { labels, datasets: [ { label: currentLang === 'uk' ? 'Збитки (від\'ємний потік)' : 'Losses (negative flow)', data: negativeData, borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: true, tension: 0.35, borderWidth: 2.5, pointRadius: 0, segment: { borderColor: (ctx) => { const value = ctx.p0.parsed.y; return value < 0 ? '#EF4444' : 'transparent'; } } }, { label: currentLang === 'uk' ? 'Прибуток (додатний потік)' : 'Profit (positive flow)', data: positiveData, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.15)', fill: true, tension: 0.35, borderWidth: 2.5, pointRadius: 0, segment: { borderColor: (ctx) => { const value = ctx.p0.parsed.y; return value >= 0 ? '#10B981' : 'transparent'; } } } ] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { color: '#475569', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 10, usePointStyle: true } }, tooltip: { callbacks: { label: (ctx) => { let val = ctx.raw; let label = ctx.dataset.label || ''; if (val === 0) return null; return `${label}: ${val.toLocaleString('uk-UA')} ₴`; } } } }, scales: { x: { ticks: { color: '#475569', font: { size: 11, weight: '500' } }, grid: { color: '#E2E8F0' }, title: { display: true, text: currentLang === 'uk' ? 'Рік' : 'Year', color: '#64748B', font: { size: 12 } } }, y: { ticks: { color: '#475569', font: { size: 11 }, callback: v => { if (v === 0) return '0 ₴'; return (v / 1000).toFixed(0) + 'k ₴'; } }, grid: { color: '#E2E8F0' }, title: { display: true, text: currentLang === 'uk' ? 'Накопичений грошовий потік, ₴' : 'Accumulated cash flow, UAH', color: '#64748B', font: { size: 12 } } } } }, plugins: [ { afterDatasetsDraw(chart) { const { ctx, chartArea } = chart; if (!paybackYear) return; ctx.save(); const x = chart.scales.x.getPixelForValue(paybackYear); ctx.beginPath(); ctx.moveTo(x, chartArea.top); ctx.lineTo(x, chartArea.bottom); ctx.strokeStyle = '#F59E0B'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#F59E0B'; ctx.font = 'bold 10px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(`${currentLang === 'uk' ? '💰 Окупність' : '💰 Payback'}: ${paybackYear} ${currentLang === 'uk' ? 'р.' : 'y.'}`, x, chartArea.top - 5); ctx.restore(); } } ] });
 }
 function updateChartCapex(cBase, cCable, cBESS, cTrans, cOther) {
   const ctx = document.getElementById('chartCapex').getContext('2d');
-  const labels = currentLang === 'uk' ? ['СЕС','Кабель','BESS','Трансформатор','Інше'] : ['SES','Cable','BESS','Transformer','Other'];
+  const labels = currentLang === 'uk' ? ['СЕС','Кабель','BESS','Трансформатор','Проєкт+Резерв'] : ['SES','Cable','BESS','Transformer','Design+Reserve'];
   if (charts.capex) charts.capex.destroy();
-  charts.capex = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: [cBase, cCable, cBESS, cTrans, cOther], backgroundColor: ['#F59E0B','#3B82F6','#10B981','#8B5CF6','#94A3B8'], borderWidth: 0, hoverOffset: 6 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'right', labels: { font:{size:9}, boxWidth:8, padding:6 } } } } });
+  charts.capex = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: [cBase, cCable, cBESS, cTrans, cOther], backgroundColor: ['#F59E0B','#3B82F6','#10B981','#8B5CF6','#94A3B8'], borderWidth: 0, hoverOffset: 6 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'right', labels: { font:{size:10}, boxWidth:10, padding:8 } } } } });
 }
 
 function updateReport() {
@@ -899,7 +894,7 @@ function updateReport() {
   document.getElementById('rp-object-name').innerHTML = (currentLang === 'uk' ? 'Об\'єкт' : 'Object') + ': ' + objName + objCity;
   document.getElementById('rp-r-obj').textContent = objName;
   const regSel = document.getElementById('region');
-  document.getElementById('rp-r-region').textContent = (regSel.options[regSel.selectedIndex]?.text||'—') + ' / PSH ' + getPSH() + ' ' + (currentLang === 'uk' ? 'год/день' : 'h/day');
+  document.getElementById('rp-r-region').textContent = (regSel.options[regSel.selectedIndex]?.text||'—') + ' / PSH ' + getPSH() + (currentLang === 'uk' ? ' год/день' : ' h/day');
   document.getElementById('rp-r-cons').textContent = fmtN(R.annual,0) + ' kWh/year · ' + fmtN(R.tariff,2) + ' UAH/kWh';
   document.getElementById('rp-r-placement').textContent = currentLang === 'uk' ? R.placementName : (CONFIG.placement[state.placement]?.nameEn || R.placementName);
   if (R.power) document.getElementById('rp-power').innerHTML = fmtN(R.power,1)+'<span class="rp-unit"> kWp</span>';
@@ -912,7 +907,7 @@ function updateReport() {
   if (R.irr) document.getElementById('rp-f-irr').textContent = (R.irr||0).toFixed(1)+'% / '+(R.lcoe||0).toFixed(2)+' UAH/kWh';
   if (R.coverage) document.getElementById('rp-f-cover').textContent = (R.coverage||0).toFixed(1)+'%';
   const leadInfo = [document.getElementById('leadName').value, document.getElementById('leadCompany').value].filter(Boolean).join(' · ');
-  document.getElementById('rp-lead-info').textContent = leadInfo ? (currentLang === 'uk' ? 'Для: ' : 'For: ') + leadInfo : '';
+  document.getElementById('rp-lead-info').textContent = leadInfo ? (currentLang === 'uk' ? 'Підготовлено для: ' : 'Prepared for: ') + leadInfo : '';
 }
 function selectScenario(i) { state.selectedScenario = i; document.querySelectorAll('.scenario-card').forEach((c,j) => c.classList.toggle('selected', j===i)); }
 
@@ -924,11 +919,18 @@ async function generatePDF() {
     if (state.R.annualGen && state.R.annual) {
       updateChartMonthly(state.R.annualGen, state.R.annual);
       updateChartCashflow(state.R.capex, state.R.saving1 - (state.R.capex * CONFIG.finance.opex_pct), parseFloat(document.getElementById('tariffGrowth').value));
+      const cBase = parseFloat(document.getElementById('c-base').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+      const cCable = parseFloat(document.getElementById('c-cable').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+      const cBESS = parseFloat(document.getElementById('c-bess').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+      const cTrans = parseFloat(document.getElementById('c-transformer').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+      const cDesign = parseFloat(document.getElementById('c-design').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+      const cCont = parseFloat(document.getElementById('c-contingency').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+      updateChartCapex(cBase, cCable, cBESS, cTrans, cDesign + cCont);
     }
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 300));
     const { jsPDF } = window.jspdf;
     const reportEl = document.getElementById('reportPreview');
-    const canvas = await html2canvas(reportEl, { scale: 2.5, backgroundColor: '#ffffff', useCORS: true, logging: false });
+    const canvas = await html2canvas(reportEl, { scale: 2.5, backgroundColor: '#ffffff', useCORS: true, logging: false, windowWidth: reportEl.scrollWidth, windowHeight: reportEl.scrollHeight });
     const imgData = canvas.toDataURL('image/png');
     const imgW = 210;
     const pageH = 297;
@@ -946,10 +948,7 @@ async function generatePDF() {
     }
     const objName = (document.getElementById('objName').value || 'SES').replace(/[^a-zA-Zа-яА-ЯіїєґІЇЄҐ0-9]/g,'_');
     doc.save('Rozrakhunok_SES_' + objName + '_' + new Date().toISOString().slice(0,10) + '.pdf');
-  } catch(e) { 
-    console.error(e); 
-    alert((currentLang === 'uk' ? 'Помилка: ' : 'Error: ') + e.message); 
-  }
+  } catch(e) { console.error(e); alert((currentLang === 'uk' ? 'Помилка генерації PDF: ' : 'PDF generation error: ') + e.message); }
   btn.textContent = currentLang === 'uk' ? '📥 Завантажити PDF' : '📥 Download PDF'; 
   btn.disabled = false;
 }
@@ -957,8 +956,8 @@ async function generatePDF() {
 function saveData() { try { localStorage.setItem('sesCalcData', JSON.stringify({ annualConsumption: document.getElementById('annualConsumption').value, tariff: document.getElementById('tariff').value, region: document.getElementById('region').value, placement: state.placement, availArea: document.getElementById('availArea').value, panelWatt: document.getElementById('panelWatt').value, orient: state.orient, orientCoeff: state.orientCoeff, tariffGrowth: document.getElementById('tariffGrowth').value, objName: document.getElementById('objName').value, objCity: document.getElementById('objCity').value, dgOn: state.dgOn, bessOn: state.bessOn, bessKwh: document.getElementById('bessKwh').value, dgPower: document.getElementById('dgPower').value, cableLen: document.getElementById('cableLen').value })); } catch(e) {} }
 function restoreData() { try { const raw = localStorage.getItem('sesCalcData'); if (!raw) return; const d = JSON.parse(raw); if (d.annualConsumption) document.getElementById('annualConsumption').value = d.annualConsumption; if (d.tariff) document.getElementById('tariff').value = d.tariff; if (d.availArea) document.getElementById('availArea').value = d.availArea; if (d.panelWatt) document.getElementById('panelWatt').value = d.panelWatt; if (d.tariffGrowth) document.getElementById('tariffGrowth').value = d.tariffGrowth; if (d.objName) document.getElementById('objName').value = d.objName; if (d.objCity) document.getElementById('objCity').value = d.objCity; if (d.bessKwh) document.getElementById('bessKwh').value = d.bessKwh; if (d.dgPower) document.getElementById('dgPower').value = d.dgPower; if (d.cableLen) document.getElementById('cableLen').value = d.cableLen; if (d.region) { document.getElementById('region').value = d.region; regionChange(); } if (d.placement) { const cards = document.querySelectorAll('.placement-card'); const keys = ['flatRoof','slopedRoof','ground','facade','carport']; const idx = keys.indexOf(d.placement); if (idx >= 0) setPlacement(d.placement, cards[idx]); } if (d.orient && d.orientCoeff) { state.orient = d.orient; state.orientCoeff = d.orientCoeff; document.querySelectorAll('.orient-btn').forEach(b => { const match = b.textContent.includes(d.orient) || (d.orient==='S' && b.textContent.includes('Південь') && !b.textContent.includes('Захід') && !b.textContent.includes('Схід')); b.classList.toggle('active', match); }); } if (d.dgOn) toggleDG(); if (d.bessOn) toggleBESS(); } catch(e) {} closeModal(); debouncedRecalc(); }
 function closeModal() { document.getElementById('restoreModal').style.display = 'none'; }
-function resetAll() { if (confirm(currentLang === 'uk' ? 'Скинути налаштування?' : 'Reset settings?')) { localStorage.removeItem('sesCalcData'); location.reload(); } }
-function shareCalc() { const url = window.location.href.split('#')[0]; navigator.clipboard.writeText(url).then(() => alert(currentLang === 'uk' ? 'Посилання скопійовано!' : 'Link copied!')).catch(() => prompt('Copy:', url)); }
+function resetAll() { if (confirm(currentLang === 'uk' ? 'Скинути всі налаштування?' : 'Reset all settings?')) { localStorage.removeItem('sesCalcData'); location.reload(); } }
+function shareCalc() { const url = window.location.href.split('#')[0]; navigator.clipboard.writeText(url).then(() => alert(currentLang === 'uk' ? 'Посилання скопійовано!' : 'Link copied!')).catch(() => prompt(currentLang === 'uk' ? 'Скопіюйте:' : 'Copy:', url)); }
 
 window.addEventListener('load', () => { 
   if (localStorage.getItem('sesCalcData')) document.getElementById('restoreModal').style.display = 'flex'; 
