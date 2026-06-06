@@ -1030,7 +1030,7 @@ function updateReportCharts() {
     });
   }
   
-  const ctxCashflow = document.getElementById('rp-chart-cashflow');
+    const ctxCashflow = document.getElementById('rp-chart-cashflow');
   if (ctxCashflow) {
     let cum = -R.capex;
     const data = [cum];
@@ -1041,11 +1041,48 @@ function updateReportCharts() {
       labels.push('' + y);
     }
     
+    // Знаходимо рік окупності
+    let paybackYear = null;
+    for (let i = 0; i < data.length - 1; i++) {
+      if (data[i] < 0 && data[i + 1] >= 0) {
+        paybackYear = i + 1;
+        break;
+      }
+    }
+    
     if (window.rpCashflowChart) window.rpCashflowChart.destroy();
     window.rpCashflowChart = new Chart(ctxCashflow, {
       type: 'line',
       data: { labels, datasets: [{ label: 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35, borderWidth: 2 }] },
-      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top', labels: { font: { size: 9 } } } } }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: true, 
+        plugins: { 
+          legend: { position: 'top', labels: { font: { size: 9 } } },
+          tooltip: { callbacks: { label: (ctx) => { return `${ctx.dataset.label}: ${ctx.raw.toLocaleString('uk-UA')} ₴`; } } }
+        }
+      },
+      plugins: [{
+        afterDatasetsDraw(chart) {
+          if (!paybackYear) return;
+          const { ctx, chartArea, scales } = chart;
+          ctx.save();
+          const x = scales.x.getPixelForValue(paybackYear);
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 6]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#F59E0B';
+          ctx.font = 'bold 9px "Inter", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(`Окупність: ${paybackYear} р.`, x, chartArea.top - 5);
+          ctx.restore();
+        }
+      }]
     });
   }
   
