@@ -550,8 +550,8 @@ select.inp { cursor: pointer; }
   </div>
 </div>
 <div style="text-align:center;margin:8px 0 4px;">
-  <div style="display:inline-block;width:260px;">
-    <div class="rp-chart-label" style="text-align:center;">Структура CAPEX</div>
+<div style="display:inline-block;width:260px;">
+   <div class="rp-chart-label" style="text-align:center;">Структура CAPEX</div>
     <canvas id="rp-chart-capex" style="height:160px;width:100%;"></canvas>
   </div>
 </div>
@@ -1102,7 +1102,7 @@ function updateReportCharts() {
      // options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 9 } } } } }
    // });
  // }
-//}
+}
 function selectScenario(i) { state.selectedScenario = i; document.querySelectorAll('.scenario-card').forEach((c,j) => c.classList.toggle('selected', j===i)); }
 
 async function generatePDF() {
