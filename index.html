@@ -112,26 +112,26 @@ select.inp { cursor: pointer; }
 .placement-name { font-size: 11px; font-weight: 700; }
 .placement-coeff { font-size: 10px; color: var(--c-text2); margin-top: 2px; }
 
-/* CHARTS */
+/* CHARTS - FIXED VERSION (без розтягування) */
 .chart-wrap { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r); padding: 20px; margin-bottom: 16px; }
 .chart-title { font-size: 11px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
-/* FIX: canvas-box must have explicit height so Chart.js doesn't expand infinitely */
+/* Fixed canvas box - no absolute positioning issues */
 .canvas-box { position: relative; width: 100%; }
-.canvas-box canvas { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; }
+.canvas-box canvas { display: block; width: 100% !important; height: 100% !important; }
+/* Set specific heights for different charts */
+#sec2 .canvas-box { height: 380px; }
+#sec3 .canvas-box { height: 240px; }
+.rp-chart-box { height: auto; }
+.rp-chart-box canvas { height: 160px !important; width: 100% !important; display: block; }
 
-/* ══════════════════════════════════════════════
-   SCENARIO CARDS — fully responsive fix
-══════════════════════════════════════════════ */
+/* SCENARIO CARDS */
 .scenario-grid {
   display: grid;
-  /* 2 columns on wide screens, 1 column on narrow */
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
   margin-bottom: 20px;
 }
-/* Scenario 5 spans full width always */
 .scenario-card.full-width { grid-column: 1 / -1; }
-
 .scenario-card { background: var(--c-surface2); border: 2px solid var(--c-border); border-radius: var(--r2); padding: 18px; cursor: pointer; transition: border-color 0.15s; position: relative; }
 .scenario-card:hover { border-color: var(--c-sun); }
 .scenario-card.selected { border-color: var(--c-sun); background: var(--c-sun-glow); }
@@ -183,9 +183,7 @@ select.inp { cursor: pointer; }
 .orient-btn.active { border-color: var(--c-sun); background: var(--c-sun-glow); color: var(--c-sun); }
 .orient-coeff { font-size: 10px; color: var(--c-text3); margin-top: 2px; }
 
-/* ══════════════════════════════════════════════
-   REPORT — visible on-page preview
-══════════════════════════════════════════════ */
+/* REPORT PREVIEW */
 .report-preview { background: white; border-radius: var(--r2); overflow: hidden; margin-bottom: 20px; border: 1px solid var(--c-border); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
 .rp-header { background: linear-gradient(135deg, #0F172A, #1E293B); padding: 28px 32px; color: white; }
 .rp-logo-row { display: flex; justify-content: space-between; margin-bottom: 20px; }
@@ -248,14 +246,10 @@ select.inp { cursor: pointer; }
 .divider { height: 1px; background: var(--c-border); margin: 16px 0; }
 .scenario-mode-btn { transition: all 0.2s ease; }
 
-/* ══════════════════════════════════════════════
-   RESPONSIVE BREAKPOINTS
-══════════════════════════════════════════════ */
+/* RESPONSIVE BREAKPOINTS */
 @media (max-width: 900px) {
-  /* Scenario grid becomes 1 column under 900px */
   .scenario-grid { grid-template-columns: 1fr; }
   .scenario-card.full-width { grid-column: 1; }
-  /* SC metrics: 2 columns on medium screens */
   .sc-metrics { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -270,8 +264,10 @@ select.inp { cursor: pointer; }
   .topbar { padding: 0 12px; }
   .tabs-nav { padding: 0 8px; }
   .tab-btn { padding: 10px 12px; font-size: 12px; }
-  /* SC metrics: 1 column on mobile */
   .sc-metrics { grid-template-columns: repeat(2, 1fr); }
+  #sec2 .canvas-box { height: 300px; }
+  #sec3 .canvas-box { height: 200px; }
+  .rp-chart-box canvas { height: 140px !important; }
 }
 
 @media (max-width: 480px) {
@@ -296,7 +292,7 @@ select.inp { cursor: pointer; }
   </div>
 </div>
 
-<!-- PDF LOADER (hidden by default) -->
+<!-- PDF LOADER -->
 <div class="pdf-loader" id="pdfLoader" style="display:none;">
   <div class="pdf-loader-spinner"></div>
   <div class="pdf-loader-text" id="pdfLoaderText">Підготовка PDF...</div>
@@ -324,7 +320,7 @@ select.inp { cursor: pointer; }
 
 <main class="main">
 
-<!-- ═══════════ SECTION 1 — ПРО ОБ'ЄКТ ═══════════ -->
+<!-- SECTION 1 — ПРО ОБ'ЄКТ -->
 <section class="section" id="sec0">
   <div class="sec-title">🏠 Про <span class="accent">об'єкт</span></div>
   <div class="sec-desc" data-uk="Базова інформація для всіх подальших розрахунків." data-en="Basic information for all subsequent calculations.">Базова інформація для всіх подальших розрахунків.</div>
@@ -375,7 +371,7 @@ select.inp { cursor: pointer; }
   </div>
 </section>
 
-<!-- ═══════════ SECTION 2 — ПЛОЩА ═══════════ -->
+<!-- SECTION 2 — ПЛОЩА ТА ПОТУЖНІСТЬ -->
 <section class="section" id="sec1">
   <div class="sec-title">☀️ Площа та <span class="accent">потужність</span></div>
   <div class="sec-desc" data-uk="Вкажіть доступну площу — калькулятор визначить яку потужність можна розмістити, або навпаки." data-en="Specify the available area — the calculator will determine how much power can be installed.">Вкажіть доступну площу — калькулятор визначить яку потужність можна розмістити, або навпаки.</div>
@@ -428,7 +424,7 @@ select.inp { cursor: pointer; }
   </div>
 </section>
 
-<!-- ═══════════ SECTION 3 — ГЕНЕРАЦІЯ ═══════════ -->
+<!-- SECTION 3 — ГЕНЕРАЦІЯ -->
 <section class="section" id="sec2">
   <div class="sec-title">⚡ Генерація <span class="accent">електроенергії</span></div>
   <div class="sec-desc" data-uk="Розрахунок обсягу електроенергії, яку виробить ваша СЕС протягом року." data-en="Calculation of the amount of electricity your SES will produce during the year.">Розрахунок обсягу електроенергії, яку виробить ваша СЕС протягом року.</div>
@@ -447,11 +443,11 @@ select.inp { cursor: pointer; }
   </div>
   <div class="chart-wrap">
     <div class="chart-title">⚡ <span data-uk="Місячний баланс електроенергії: генерація, споживання та надлишок" data-en="Monthly electricity balance: generation, consumption and surplus">Місячний баланс електроенергії: генерація, споживання та надлишок</span></div>
-    <div class="canvas-box" style="height:380px;"><canvas id="chartMonthly"></canvas></div>
+    <div class="canvas-box"><canvas id="chartMonthly"></canvas></div>
   </div>
 </section>
 
-<!-- ═══════════ SECTION 4 — ФІНАНСИ ═══════════ -->
+<!-- SECTION 4 — ФІНАНСОВИЙ АНАЛІЗ -->
 <section class="section" id="sec3">
   <div class="sec-title">💰 Фінансовий <span class="accent">аналіз</span></div>
   <div class="sec-desc" data-uk="CAPEX, OPEX, строк окупності та порівняння варіантів." data-en="CAPEX, OPEX, payback period and comparison of options.">CAPEX, OPEX, строк окупності та порівняння варіантів.</div>
@@ -472,7 +468,7 @@ select.inp { cursor: pointer; }
         <tr><td data-uk="Проєктування та ТУ (4%)" data-en="Design & permits (4%)">Проєктування та ТУ (4%)</td><td class="num" id="c-design">—</td></tr>
         <tr><td data-uk="Резерв непередбачених (10%)" data-en="Contingency (10%)">Резерв непередбачених (10%)</td><td class="num" id="c-contingency">—</td></tr>
         <tr style="font-weight:700;font-size:15px;"><td data-uk="РАЗОМ CAPEX" data-en="TOTAL CAPEX">РАЗОМ CAPEX</td><td class="num sun" id="c-total">—</td></tr>
-      </tbody></table>
+      </tbody>
     </div>
     <div class="card">
       <div class="card-title" data-uk="Результати фінансового аналізу" data-en="Financial analysis results">Результати фінансового аналізу</div>
@@ -488,24 +484,23 @@ select.inp { cursor: pointer; }
     </div>
   </div>
   <div class="grid-2">
-    <div class="chart-wrap"><div class="chart-title" data-uk="Накопичений грошовий потік (25 років)" data-en="Accumulated cash flow (25 years)">Накопичений грошовий потік (25 років)</div><div class="canvas-box" style="height:240px;"><canvas id="chartCashflow"></canvas></div></div>
-    <div class="chart-wrap"><div class="chart-title" data-uk="Структура CAPEX" data-en="CAPEX structure">Структура CAPEX</div><div class="canvas-box" style="height:240px;"><canvas id="chartCapex"></canvas></div></div>
+    <div class="chart-wrap"><div class="chart-title" data-uk="Накопичений грошовий потік (25 років)" data-en="Accumulated cash flow (25 years)">Накопичений грошовий потік (25 років)</div><div class="canvas-box"><canvas id="chartCashflow"></canvas></div></div>
+    <div class="chart-wrap"><div class="chart-title" data-uk="Структура CAPEX" data-en="CAPEX structure">Структура CAPEX</div><div class="canvas-box"><canvas id="chartCapex"></canvas></div></div>
   </div>
   <div class="card">
     <div class="card-title" data-uk="Порівняння: з СЕС vs без СЕС" data-en="Comparison: with SES vs without">Порівняння: з СЕС vs без СЕС</div>
     <table class="data-table"><thead><tr><th></th><th data-uk="Без СЕС" data-en="Without SES">Без СЕС</th><th data-uk="З СЕС" data-en="With SES">З СЕС</th><th data-uk="Різниця (вигода)" data-en="Difference (benefit)">Різниця (вигода)</th></tr></thead><tbody>
       <tr><td data-uk="Витрати на ел-ку за 25 р." data-en="Electricity costs for 25 years">Витрати на ел-ку за 25 р.</td><td class="num" id="cmp-without">—</td><td class="num" id="cmp-with">—</td><td class="num green" id="cmp-diff">—</td></tr>
       <tr><td data-uk="Вартість кВт·год" data-en="Cost per kWh">Вартість кВт·год</td><td class="num" id="cmp-tariff-now">—</td><td class="num" id="cmp-lcoe">—</td><td class="num green" id="cmp-lcoe-diff">—</td></tr>
-    </tbody></table>
+    </tbody>
   </div>
 </section>
 
-<!-- ═══════════ SECTION 5 — СЦЕНАРІЇ ═══════════ -->
+<!-- SECTION 5 — СЦЕНАРІЇ -->
 <section class="section" id="sec4">
   <div class="sec-title">🔀 Сценарії <span class="accent">впровадження</span></div>
   <div class="sec-desc" data-uk="Порівняйте 5 варіантів СЕС та оберіть оптимальний для вашого об'єкта." data-en="Compare 5 SES options and choose the optimal one for your facility.">Порівняйте 5 варіантів СЕС та оберіть оптимальний для вашого об'єкта.</div>
 
-  <!-- Scenario grid — proper responsive -->
   <div class="scenario-grid">
     <div class="scenario-card" onclick="selectScenario(0)" id="sc0">
       <span class="sc-badge badge badge-blue">On-grid limited</span>
@@ -513,29 +508,24 @@ select.inp { cursor: pointer; }
       <div class="sc-desc" data-uk="Генерує рівно стільки, скільки споживає об'єкт. Надлишок обрізається." data-en="Generates exactly as much as the facility consumes. Surplus is curtailed.">Генерує рівно стільки, скільки споживає об'єкт. Надлишок обрізається.</div>
       <div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc0-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label" data-uk="Окупність" data-en="Payback">Окупність</div><div class="sc-metric-val" id="sc0-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label" data-uk="Резерв" data-en="Reserve">Резерв</div><div class="sc-metric-val" style="color:var(--c-red);">0 год</div></div></div>
     </div>
-
     <div class="scenario-card" onclick="selectScenario(1)" id="sc1">
       <span class="sc-badge badge badge-green">Feed-in</span>
       <div class="sc-header"><div class="sc-num" style="background:rgba(16,185,129,0.15);color:#10B981;">02</div><div><div class="sc-name" data-uk="СЕС з продажем у мережу" data-en="SES with feed-in">СЕС з продажем у мережу</div><div class="sc-tag" data-uk="Монетизація надлишку" data-en="Surplus monetization">Монетизація надлишку</div></div></div>
       <div class="sc-desc" data-uk="Надлишок передається в мережу за ринковою ціною." data-en="Surplus is fed into the grid at market price.">Надлишок передається в мережу за ринковою ціною.</div>
       <div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc1-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label" data-uk="Окупність" data-en="Payback">Окупність</div><div class="sc-metric-val" id="sc1-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label" data-uk="Резерв" data-en="Reserve">Резерв</div><div class="sc-metric-val" style="color:var(--c-red);">0 год</div></div></div>
     </div>
-
     <div class="scenario-card" onclick="selectScenario(2)" id="sc2">
       <span class="sc-badge badge badge-yellow">Hybrid+BESS</span>
       <div class="sc-header"><div class="sc-num" style="background:rgba(245,158,11,0.15);color:var(--c-sun);">03</div><div><div class="sc-name" data-uk="СЕС + Батарея (BESS)" data-en="SES + Battery (BESS)">СЕС + Батарея (BESS)</div><div class="sc-tag" data-uk="Енергонезалежність" data-en="Energy independence">Енергонезалежність</div></div></div>
       <div class="sc-desc" data-uk="Акумулятор накопичує надлишок вдень і живить об'єкт вночі або під час відключень." data-en="Battery stores surplus during the day and powers the facility at night or during outages.">Акумулятор накопичує надлишок вдень і живить об'єкт вночі або під час відключень.</div>
       <div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc2-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label" data-uk="Окупність" data-en="Payback">Окупність</div><div class="sc-metric-val" id="sc2-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label" data-uk="Резерв" data-en="Reserve">Резерв</div><div class="sc-metric-val" style="color:var(--c-green);" id="sc2-reserve">—</div></div></div>
     </div>
-
     <div class="scenario-card" onclick="selectScenario(3)" id="sc3">
       <span class="sc-badge badge badge-red">Solar+DG</span>
       <div class="sc-header"><div class="sc-num" style="background:rgba(239,68,68,0.15);color:#EF4444;">04</div><div><div class="sc-name" data-uk="СЕС + Дизельний генератор" data-en="SES + Diesel generator">СЕС + Дизельний генератор</div><div class="sc-tag" data-uk="Економія пального" data-en="Fuel savings">Економія пального</div></div></div>
       <div class="sc-desc" data-uk="СЕС розвантажує ДГ вдень — зменшує витрату пального на 40–60%." data-en="SES relieves the DG during the day — reduces fuel consumption by 40–60%.">СЕС розвантажує ДГ вдень — зменшує витрату пального на 40–60%.</div>
       <div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc3-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label" data-uk="Окупність" data-en="Payback">Окупність</div><div class="sc-metric-val" id="sc3-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label" data-uk="Економія" data-en="Savings">Економія</div><div class="sc-metric-val" style="color:var(--c-green);" id="sc3-fuel">—</div></div></div>
     </div>
-
-    <!-- Scenario 5 — full width always -->
     <div class="scenario-card full-width" onclick="selectScenario(4)" id="sc4">
       <span class="sc-badge badge badge-yellow">⭐ Premium</span>
       <div class="sc-header"><div class="sc-num" style="background:rgba(245,158,11,0.2);color:var(--c-sun);">05</div><div><div class="sc-name" data-uk="СЕС + ДГ + Батарея (Комбо)" data-en="SES + DG + Battery (Combo)">СЕС + ДГ + Батарея (Комбо)</div><div class="sc-tag" data-uk="Максимальна надійність · 24–72 год автономності" data-en="Maximum reliability · 24–72 h autonomy">Максимальна надійність · 24–72 год автономності</div></div></div>
@@ -550,7 +540,7 @@ select.inp { cursor: pointer; }
   </div>
 </section>
 
-<!-- ═══════════ SECTION 6 — ЗВІТ ═══════════ -->
+<!-- SECTION 6 — ЗВІТ -->
 <section class="section" id="sec5">
   <div class="sec-title">📄 PDF <span class="accent">Звіт</span></div>
   <div class="sec-desc" data-uk="Завантажте брендований попередній розрахунок для презентації керівництву." data-en="Download a branded preliminary calculation to present to management.">Завантажте брендований попередній розрахунок для презентації керівництву.</div>
@@ -593,7 +583,6 @@ select.inp { cursor: pointer; }
       <div class="rp-row"><span class="rp-row-label">OPEX річний</span><span class="rp-row-val" id="rp-f-opex">—</span></div>
       <div class="rp-row"><span class="rp-row-label">IRR / LCOE</span><span class="rp-row-val" id="rp-f-irr">—</span></div>
       <div class="rp-row"><span class="rp-row-label">Покриття споживання</span><span class="rp-row-val" id="rp-f-cover">—</span></div>
-      <!-- Embedded charts in report -->
       <div class="rp-section-title">Графіки</div>
       <div class="rp-charts-row">
         <div class="rp-chart-box"><div class="rp-chart-label">Місячна генерація</div><canvas id="rp-chartMonthly" style="height:160px;width:100%;"></canvas></div>
@@ -762,7 +751,6 @@ function recalcAll() {
   document.getElementById('r-daily-gen').innerHTML=fmtN(annualGen/365,1);
   document.getElementById('r-degrad').innerHTML=(100-CONFIG.solar.degradation*25*100).toFixed(1)+' <span class="unit">%</span>';
 
-  // Charts
   buildChartMonthly(annualGen, annual);
 
   // CAPEX
@@ -864,7 +852,7 @@ function recalcAll() {
     ['Батарея BESS',['Ні','Ні','Так','Ні','Так']],
     ['ДГ',['Ні','Ні','Ні','Так','Так']]
   ];
-  document.getElementById('scenarioCompareBody').innerHTML=rows.map(([lbl,vals])=>`<tr><td class="row-label">${lbl}</td>${vals.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('');
+  document.getElementById('scenarioCompareBody').innerHTML=rows.map(([lbl,vals])=>`<tr><td class="row-label">${lbl}</td>${vals.map(v=>`<td>${v}<td>`).join('')}</tr>`).join('');
 
   state.R={power,annualGen,saving1,capex,payback,npv,lcoe,irr:irrVal,coverage,annual,tariff,psh,effArea,totalArea,panels,placementName:pl.name,placementNameEn:pl.nameEn,orient:state.orient,opex,cBase,cCable,cBESS:cBESS,cTransf,cDesign,cCont};
   updateReport();
@@ -879,11 +867,12 @@ const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','
 function getMonths() { return currentLang==='en'?MONTHS_EN:MONTHS; }
 
 const CHART_BASE = {
-  responsive:true, maintainAspectRatio:false,
-  plugins:{ legend:{ labels:{ color:'#475569', font:{size:11}, boxWidth:12, padding:8 } } },
-  scales:{
-    x:{ ticks:{color:'#475569',font:{size:10}}, grid:{color:'#E2E8F0'} },
-    y:{ ticks:{color:'#475569',font:{size:10}}, grid:{color:'#E2E8F0'} }
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: { legend: { labels: { color:'#475569', font:{size:11}, boxWidth:12, padding:8 } } },
+  scales: {
+    x: { ticks:{color:'#475569',font:{size:10}}, grid:{color:'#E2E8F0'} },
+    y: { ticks:{color:'#475569',font:{size:10}}, grid:{color:'#E2E8F0'} }
   }
 };
 
@@ -900,7 +889,6 @@ function buildChartMonthly(annualGen, annual, ctx_id='chartMonthly') {
   const surplusColor=currentScenario==='feedin'?'#3B82F6':'#EF4444';
   const surplusLabel=currentScenario==='feedin'?(currentLang==='uk'?'💰 Продаж у мережу':'💰 Feed-in'):(currentLang==='uk'?'⚠️ Надлишок (обрізається)':'⚠️ Surplus (curtailed)');
 
-  // destroy previous chart for this specific canvas
   const key = 'monthly_'+ctx_id;
   if(charts[key]) { charts[key].destroy(); }
   charts[key]=new Chart(c,{
@@ -921,8 +909,6 @@ function buildChartCashflow(capex, cf1, growth, ctx_id='chartCashflow') {
   const c=ctx.getContext('2d');
   let cum=-capex; const data=[cum]; const labels=['0'];
   for(let y=1;y<=25;y++){cum+=cf1*Math.pow(1+growth,y); data.push(Math.round(cum)); labels.push(''+y);}
-  let pby=null;
-  for(let i=0;i<data.length-1;i++) if(data[i]<0&&data[i+1]>=0){pby=i+1;break;}
   const key='cashflow_'+ctx_id;
   if(charts[key]) charts[key].destroy();
   charts[key]=new Chart(c,{
@@ -945,13 +931,13 @@ function buildChartCapex(cBase, cCable, cBESS, cTransf, cOther, ctx_id='chartCap
   charts[key]=new Chart(c,{
     type:'doughnut',
     data:{labels, datasets:[{data:[cBase,cCable,cBESS,cTransf,cOther], backgroundColor:['#F59E0B','#3B82F6','#10B981','#8B5CF6','#94A3B8'], borderWidth:0, hoverOffset:6}]},
-    options:{responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{position:'right', labels:{font:{size:10}, boxWidth:10, padding:6}}}}
+    options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{position:'right', labels:{font:{size:10}, boxWidth:10, padding:6}}}}
   });
   return charts[key];
 }
 
 // ================================================================
-// REPORT UPDATE (live preview)
+// REPORT UPDATE
 // ================================================================
 function updateReport() {
   const R=state.R;
@@ -978,7 +964,6 @@ function updateReport() {
   const lead=[document.getElementById('leadName').value,document.getElementById('leadCompany').value].filter(Boolean).join(' · ');
   document.getElementById('rp-lead-info').textContent=lead?'Підготовлено для: '+lead:'';
 
-  // Render mini charts inside report
   if(R.annualGen) {
     buildChartMonthly(R.annualGen, R.annual, 'rp-chartMonthly');
     buildChartCashflow(R.capex, R.saving1-(R.capex*CONFIG.finance.opex_pct), parseFloat(document.getElementById('tariffGrowth').value)||0, 'rp-chartCashflow');
@@ -989,20 +974,17 @@ function updateReport() {
 function selectScenario(i) { state.selectedScenario=i; document.querySelectorAll('.scenario-card').forEach((c,j)=>c.classList.toggle('selected',j===i)); }
 
 // ================================================================
-// PDF — PROFESSIONAL REPORT WITH CHARTS
+// PDF GENERATION
 // ================================================================
 async function generatePDF() {
   const btn = event.target;
   const loader = document.getElementById('pdfLoader');
   const loaderText = document.getElementById('pdfLoaderText');
-  const originalBtnText = btn.innerHTML;
   
-  // Show loader
   btn.disabled = true;
   loader.style.display = 'flex';
   
   try {
-    // Update all charts to ensure they're fresh
     if (state.R.annualGen && state.R.annual) {
       loaderText.textContent = 'Оновлення графіків...';
       buildChartMonthly(state.R.annualGen, state.R.annual, 'chartMonthly');
@@ -1020,14 +1002,10 @@ async function generatePDF() {
       buildChartCapex(cBase, cCable, cBESS, cTrans, cDesign + cCont, 'rp-chartCapex');
     }
     
-    // Wait for charts to render completely
     loaderText.textContent = 'Захоплення графіків...';
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Get the report preview element
     const reportEl = document.getElementById('reportPreview');
-    
-    // Use higher quality rendering
     loaderText.textContent = 'Формування зображення звіту...';
     const canvas = await html2canvas(reportEl, {
       scale: 2.8,
@@ -1036,36 +1014,21 @@ async function generatePDF() {
       logging: false,
       allowTaint: false,
       windowWidth: reportEl.scrollWidth,
-      windowHeight: reportEl.scrollHeight,
-      onclone: (clonedDoc, element) => {
-        // Ensure charts are visible in clone
-        const clonedCharts = clonedDoc.querySelectorAll('canvas');
-        clonedCharts.forEach(canvas => {
-          canvas.style.display = 'block';
-          canvas.style.visibility = 'visible';
-        });
-      }
+      windowHeight: reportEl.scrollHeight
     });
     
     loaderText.textContent = 'Створення PDF файлу...';
     const { jsPDF } = window.jspdf;
     const imgData = canvas.toDataURL('image/png');
-    const imgW = 210; // A4 width in mm
-    const pageH = 297; // A4 height in mm
+    const imgW = 210;
+    const pageH = 297;
     const imgH = (canvas.height * imgW) / canvas.width;
     
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-    
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     let heightLeft = imgH;
     let position = 0;
-    
     doc.addImage(imgData, 'PNG', 0, position, imgW, imgH);
     heightLeft -= pageH;
-    
     while (heightLeft > 0) {
       position = heightLeft - imgH;
       doc.addPage();
@@ -1074,9 +1037,7 @@ async function generatePDF() {
     }
     
     const objName = (document.getElementById('objName').value || 'SES').replace(/[^a-zA-Zа-яА-ЯіїєґІЇЄҐ0-9]/g, '_');
-    const fileName = `Rozrakhunok_SES_${objName}_${new Date().toISOString().slice(0, 10)}.pdf`;
-    
-    doc.save(fileName);
+    doc.save(`Rozrakhunok_SES_${objName}_${new Date().toISOString().slice(0, 10)}.pdf`);
     
   } catch (error) {
     console.error('PDF generation error:', error);
@@ -1086,6 +1047,9 @@ async function generatePDF() {
     btn.disabled = false;
   }
 }
+
+function printReport() { window.print(); }
+
 // ================================================================
 // STORAGE
 // ================================================================
@@ -1153,9 +1117,6 @@ function closeModal() { document.getElementById('restoreModal').style.display='n
 function resetAll() { if(confirm('Скинути всі налаштування?')){ localStorage.removeItem('sesCalcData'); location.reload(); } }
 function shareCalc() { const url=window.location.href.split('#')[0]; navigator.clipboard.writeText(url).then(()=>alert('Посилання скопійовано!')).catch(()=>prompt('Скопіюйте:',url)); }
 
-// ================================================================
-// INIT
-// ================================================================
 window.addEventListener('load', ()=>{
   if(localStorage.getItem('sesCalcData')) document.getElementById('restoreModal').style.display='flex';
   else debouncedRecalc();
