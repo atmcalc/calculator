@@ -112,25 +112,18 @@ select.inp { cursor: pointer; }
 .placement-name { font-size: 11px; font-weight: 700; }
 .placement-coeff { font-size: 10px; color: var(--c-text2); margin-top: 2px; }
 
-/* CHARTS - FIXED VERSION (без розтягування) */
+/* CHARTS */
 .chart-wrap { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r); padding: 20px; margin-bottom: 16px; }
 .chart-title { font-size: 11px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
-/* Fixed canvas box - no absolute positioning issues */
 .canvas-box { position: relative; width: 100%; }
 .canvas-box canvas { display: block; width: 100% !important; height: 100% !important; }
-/* Set specific heights for different charts */
 #sec2 .canvas-box { height: 380px; }
 #sec3 .canvas-box { height: 240px; }
 .rp-chart-box { height: auto; }
 .rp-chart-box canvas { height: 160px !important; width: 100% !important; display: block; }
 
 /* SCENARIO CARDS */
-.scenario-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
-}
+.scenario-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 20px; }
 .scenario-card.full-width { grid-column: 1 / -1; }
 .scenario-card { background: var(--c-surface2); border: 2px solid var(--c-border); border-radius: var(--r2); padding: 18px; cursor: pointer; transition: border-color 0.15s; position: relative; }
 .scenario-card:hover { border-color: var(--c-sun); }
@@ -246,7 +239,7 @@ select.inp { cursor: pointer; }
 .divider { height: 1px; background: var(--c-border); margin: 16px 0; }
 .scenario-mode-btn { transition: all 0.2s ease; }
 
-/* RESPONSIVE BREAKPOINTS */
+/* RESPONSIVE */
 @media (max-width: 900px) {
   .scenario-grid { grid-template-columns: 1fr; }
   .scenario-card.full-width { grid-column: 1; }
@@ -390,8 +383,12 @@ select.inp { cursor: pointer; }
     </div>
     <div class="grid-2">
       <div>
-        <div id="areaInputBlock"><div class="field-group"><div class="field-label" data-uk="Доступна площа (брутто)" data-en="Available area (gross)">Доступна площа (брутто)</div><div class="inp-unit"><input class="inp" type="number" id="availArea" value="1000" min="1" step="10" oninput="debouncedRecalc()"><span class="unit-label">м²</span></div></div></div>
-        <div id="powerInputBlock" style="display:none;"><div class="field-group"><div class="field-label" data-uk="Бажана потужність СЕС" data-en="Desired SES power">Бажана потужність СЕС</div><div class="inp-unit"><input class="inp" type="number" id="desiredPower" value="200" min="1" step="5" oninput="debouncedRecalc()"><span class="unit-label">кВп</span></div></div></div>
+        <div id="areaInputBlock">
+          <div class="field-group"><div class="field-label" data-uk="Доступна площа (брутто)" data-en="Available area (gross)">Доступна площа (брутто)</div><div class="inp-unit"><input class="inp" type="number" id="availArea" value="1000" min="1" step="10" oninput="debouncedRecalc()"><span class="unit-label">м²</span></div></div>
+        </div>
+        <div id="powerInputBlock" style="display:none;">
+          <div class="field-group"><div class="field-label" data-uk="Бажана потужність СЕС" data-en="Desired SES power">Бажана потужність СЕС</div><div class="inp-unit"><input class="inp" type="number" id="desiredPower" value="200" min="1" step="5" oninput="debouncedRecalc()"><span class="unit-label">кВп</span></div></div>
+        </div>
         <div class="field-group"><div class="field-label" data-uk="Потужність однієї панелі" data-en="Power of one panel">Потужність однієї панелі</div><select class="inp" id="panelWatt" onchange="debouncedRecalc()"><option value="400">400 Вт (2.0×1.0 м)</option><option value="450">450 Вт (2.1×1.0 м)</option><option value="500" selected>500 Вт (2.1×1.1 м)</option><option value="550">550 Вт (2.3×1.1 м)</option><option value="600">600 Вт (2.4×1.1 м)</option></select></div>
       </div>
       <div>
@@ -852,7 +849,7 @@ function recalcAll() {
     ['Батарея BESS',['Ні','Ні','Так','Ні','Так']],
     ['ДГ',['Ні','Ні','Ні','Так','Так']]
   ];
-  document.getElementById('scenarioCompareBody').innerHTML=rows.map(([lbl,vals])=>`<tr><td class="row-label">${lbl}</td>${vals.map(v=>`<td>${v}<td>`).join('')}</tr>`).join('');
+  document.getElementById('scenarioCompareBody').innerHTML=rows.map(([lbl,vals])=>`<td><td class="row-label">${lbl}</td>${vals.map(v=>`<td>${v}<td>`).join('')}</tr>`).join('');
 
   state.R={power,annualGen,saving1,capex,payback,npv,lcoe,irr:irrVal,coverage,annual,tariff,psh,effArea,totalArea,panels,placementName:pl.name,placementNameEn:pl.nameEn,orient:state.orient,opex,cBase,cCable,cBESS:cBESS,cTransf,cDesign,cCont};
   updateReport();
