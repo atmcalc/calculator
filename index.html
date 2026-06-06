@@ -1086,23 +1086,23 @@ function updateReportCharts() {
     });
   }
   
-  const ctxCapex = document.getElementById('rp-chart-capex');
-  if (ctxCapex) {
-    const cBase = parseFloat(document.getElementById('c-base').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cCable = parseFloat(document.getElementById('c-cable').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cBESS = parseFloat(document.getElementById('c-bess').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cTrans = parseFloat(document.getElementById('c-transformer').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cDesign = parseFloat(document.getElementById('c-design').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cCont = parseFloat(document.getElementById('c-contingency').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+  //const ctxCapex = document.getElementById('rp-chart-capex');
+  //if (ctxCapex) {
+    //const cBase = parseFloat(document.getElementById('c-base').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cCable = parseFloat(document.getElementById('c-cable').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cBESS = parseFloat(document.getElementById('c-bess').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cTrans = parseFloat(document.getElementById('c-transformer').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cDesign = parseFloat(document.getElementById('c-design').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cCont = parseFloat(document.getElementById('c-contingency').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
     
-    if (window.rpCapexChart) window.rpCapexChart.destroy();
-    window.rpCapexChart = new Chart(ctxCapex, {
-      type: 'doughnut',
-      data: { labels: ['СЕС', 'Кабель', 'BESS', 'Трансформатор', 'Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cDesign + cCont], backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#94A3B8'], borderWidth: 0 }] },
-      options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 9 } } } } }
-    });
-  }
-}
+    //if (window.rpCapexChart) window.rpCapexChart.destroy();
+    //window.rpCapexChart = new Chart(ctxCapex, {
+     // type: 'doughnut',
+     // data: { labels: ['СЕС', 'Кабель', 'BESS', 'Трансформатор', 'Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cDesign + cCont], backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#94A3B8'], borderWidth: 0 }] },
+     // options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 9 } } } } }
+   // });
+ // }
+//}
 function selectScenario(i) { state.selectedScenario = i; document.querySelectorAll('.scenario-card').forEach((c,j) => c.classList.toggle('selected', j===i)); }
 
 async function generatePDF() {
