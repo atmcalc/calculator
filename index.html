@@ -673,6 +673,7 @@ select.inp { cursor: pointer; }
 </main>
 
 <script>
+<script>
 // ==================== КОНФІГУРАЦІЯ ====================
 const DEFAULT_EFFICIENCY = 0.85;
 
@@ -692,19 +693,24 @@ const CONFIG = {
 let state = { placement: 'flatRoof', orientCoeff: 1.0, orient: 'S', calcMode: 'area', dgOn: false, bessOn: false, selectedScenario: -1, R: {} };
 let charts = {};
 let currentScenario = 'curtailment';
+let previewCharts = {};
 
+// ========== ДОПОМІЖНІ ФУНКЦІЇ ==========
 function getPSH() { return parseFloat(document.getElementById('region').value) || 4.0; }
 function fmtN(n, dec=0) { return isNaN(n) || !isFinite(n) ? '—' : n.toLocaleString('uk-UA', {maximumFractionDigits: dec, minimumFractionDigits: dec}); }
 function fmtC(n) { return fmtN(n) + ' ₴'; }
+function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
 let recalcTimer;
 function debouncedRecalc() { if (recalcTimer) clearTimeout(recalcTimer); recalcTimer = setTimeout(() => recalcAll(), 150); }
 
+// ========== НАВІГАЦІЯ ==========
 const sectionIds = ['sec0','sec1','sec2','sec3','sec4','sec5'];
 function navClick(idx) { document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx)); }
 function updateNavOnScroll() { const scrollY = window.scrollY + 140; let active = 0; sectionIds.forEach((id,i) => { const el = document.getElementById(id); if (el && el.offsetTop <= scrollY) active = i; }); document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===active)); }
 window.addEventListener('scroll', updateNavOnScroll, { passive: true });
 
+// ========== ТОГЛИ ==========
 function toggleDG() { state.dgOn = !state.dgOn; document.getElementById('dgToggle').classList.toggle('on', state.dgOn); document.getElementById('dgFields').style.display = state.dgOn ? '' : 'none'; debouncedRecalc(); }
 function toggleBESS() { state.bessOn = !state.bessOn; document.getElementById('bessToggle').classList.toggle('on', state.bessOn); document.getElementById('bessFields').style.display = state.bessOn ? '' : 'none'; debouncedRecalc(); }
 
@@ -713,11 +719,7 @@ function setPlacement(key, cardEl) {
   document.querySelectorAll('.placement-card').forEach(c => c.classList.remove('active'));
   if (cardEl) cardEl.classList.add('active');
   const pl = CONFIG.placement[key];
-  if (pl) {
-    const slider = document.getElementById('tiltSlider');
-    slider.value = pl.defaultTilt;
-    document.getElementById('tiltVal').textContent = pl.defaultTilt + '°';
-  }
+  if (pl) { document.getElementById('tiltSlider').value = pl.defaultTilt; document.getElementById('tiltVal').textContent = pl.defaultTilt + '°'; }
   debouncedRecalc();
 }
 
@@ -731,8 +733,7 @@ function setMode(m) {
 }
 
 function setOrient(o, coeff, el) { 
-  state.orient = o; 
-  state.orientCoeff = coeff; 
+  state.orient = o; state.orientCoeff = coeff; 
   document.querySelectorAll('.orient-btn').forEach(b => b.classList.remove('active')); 
   if (el) el.classList.add('active'); 
   debouncedRecalc(); 
@@ -745,19 +746,123 @@ function setScenarioMode(scenario) {
   document.querySelectorAll('.scenario-mode-btn').forEach(btn => {
     btn.style.background = 'var(--c-surface2)';
     btn.style.color = 'var(--c-text2)';
-    btn.classList.remove('active');
     if (btn.dataset.scenario === scenario) {
       btn.style.background = 'var(--c-sun)';
       btn.style.color = 'white';
-      btn.classList.add('active');
     }
   });
   recalcAll();
 }
 
+// ========== ЖИВИЙ ПРЕВ'Ю ЗВІТУ ==========
+function updateLivePreview() {
+  const R = state.R;
+  if (!R || !R.power) return;
+  
+  // Оновлення текстових даних
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const setHtml = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+  
+  setText('preview-date', new Date().toLocaleDateString('uk-UA'));
+  setText('preview-object-name', 'Об\'єкт: ' + (document.getElementById('objName').value || '—') + (document.getElementById('objCity').value ? ' · ' + document.getElementById('objCity').value : ''));
+  setText('preview-r-obj', document.getElementById('objName').value || '—');
+  
+  const regSel = document.getElementById('region');
+  setText('preview-r-region', (regSel.options[regSel.selectedIndex]?.text || '—') + ' / PSH ' + getPSH() + ' год/день');
+  setText('preview-r-cons', fmtN(R.annual, 0) + ' кВт·год/рік · ' + fmtN(R.tariff, 2) + ' ₴/кВт·год');
+  setText('preview-r-placement', R.placementName || '—');
+  
+  if (R.power) setHtml('preview-power', fmtN(R.power, 1) + '<span class="rp-unit"> кВп</span>');
+  if (R.annualGen) setHtml('preview-gen', fmtN(R.annualGen, 0) + '<span class="rp-unit"> кВт·год/рік</span>');
+  if (R.saving1) setHtml('preview-saving', fmtC(R.saving1) + '/рік');
+  if (R.capex) setText('preview-capex', fmtC(R.capex));
+  if (R.payback) setHtml('preview-payback', isFinite(R.payback) ? R.payback.toFixed(1) + '<span class="rp-unit"> р.</span>' : '—');
+  if (R.npv) setText('preview-npv', fmtC(R.npv));
+  if (R.capex) setText('preview-f-capex', fmtC(R.capex));
+  if (R.irr) setText('preview-f-irr', (R.irr || 0).toFixed(1) + '% / ' + (R.lcoe || 0).toFixed(2) + ' ₴/кВт·год');
+  if (R.coverage) setText('preview-f-cover', (R.coverage || 0).toFixed(1) + '%');
+  
+  // Вигода
+  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
+  let costWithout = 0;
+  for (let y = 1; y <= 25; y++) costWithout += R.annual * R.tariff * Math.pow(1 + tariffGrowth, y - 1);
+  const costWith = R.capex + (R.capex * 0.013 * 25);
+  const netBenefit = costWithout - costWith;
+  setHtml('preview-f-benefit', '+ ' + fmtC(netBenefit));
+  
+  const leadInfo = [document.getElementById('leadName').value, document.getElementById('leadCompany').value].filter(Boolean).join(' · ');
+  setText('preview-lead-info', leadInfo ? 'Підготовлено для: ' + leadInfo : '');
+  
+  updatePreviewCharts(R);
+}
+
+function updatePreviewCharts(R) {
+  if (!R || !R.annualGen) return;
+  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
+  const MONTHS = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
+  
+  // Місячний графік
+  const ctxMonthly = document.getElementById('preview-chart-monthly');
+  if (ctxMonthly) {
+    const seasonSum = CONFIG.solar.seasonality.reduce((a, b) => a + b, 0);
+    const mGen = CONFIG.solar.seasonality.map(k => Math.round(R.annualGen / 12 * k / (seasonSum / 12)));
+    const mCons = Array(12).fill(Math.round(R.annual / 12));
+    const used = mGen.map((g, i) => Math.min(g, mCons[i]));
+    const grid = mCons.map((c, i) => Math.max(0, c - mGen[i]));
+    const surplus = mGen.map((g, i) => Math.max(0, g - mCons[i]));
+    
+    if (previewCharts.monthly) previewCharts.monthly.destroy();
+    previewCharts.monthly = new Chart(ctxMonthly, {
+      type: 'bar',
+      data: { labels: MONTHS, datasets: [
+        { label: 'Генерація СЕС', data: used, backgroundColor: '#F59E0B', borderRadius: 4, stack: 'e' },
+        { label: 'Споживання з мережі', data: grid, backgroundColor: '#10B981', borderRadius: 4, stack: 'e' },
+        { label: 'Надлишок', data: surplus, backgroundColor: '#EF4444', borderRadius: 4, stack: 'e' }
+      ]},
+      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 } } } } }
+    });
+  }
+  
+  // Грошовий потік
+  const ctxCashflow = document.getElementById('preview-chart-cashflow');
+  if (ctxCashflow) {
+    let cum = -R.capex;
+    const data = [cum];
+    const labels = ['0'];
+    for (let y = 1; y <= 25; y++) {
+      cum += (R.saving1 - (R.capex * CONFIG.finance.opex_pct)) * Math.pow(1 + tariffGrowth, y);
+      data.push(Math.round(cum));
+      labels.push('' + y);
+    }
+    let paybackYear = null;
+    for (let i = 0; i < data.length - 1; i++) if (data[i] < 0 && data[i + 1] >= 0) { paybackYear = i + 1; break; }
+    
+    if (previewCharts.cashflow) previewCharts.cashflow.destroy();
+    previewCharts.cashflow = new Chart(ctxCashflow, {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35, borderWidth: 2 }] },
+      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top', labels: { font: { size: 9 } } } } }
+    });
+  }
+  
+  // Структура CAPEX
+  const ctxCapex = document.getElementById('preview-chart-capex');
+  if (ctxCapex) {
+    const getVal = (id) => { const el = document.getElementById(id); return el ? parseFloat(el.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0; };
+    const cBase = getVal('c-base'), cCable = getVal('c-cable'), cBESS = getVal('c-bess'), cTrans = getVal('c-transformer'), cDesign = getVal('c-design'), cCont = getVal('c-contingency');
+    
+    if (previewCharts.capex) previewCharts.capex.destroy();
+    previewCharts.capex = new Chart(ctxCapex, {
+      type: 'doughnut',
+      data: { labels: ['СЕС', 'Кабель', 'BESS', 'Трансформатор', 'Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cDesign + cCont], backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#94A3B8'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 8 } } } } }
+    });
+  }
+}
+
+// ========== ОСНОВНІ РОЗРАХУНКИ ==========
 function recalcAll() {
-  const psh = getPSH();
-  const eta = DEFAULT_EFFICIENCY;
+  const psh = getPSH(), eta = DEFAULT_EFFICIENCY;
   const annual = Math.max(0, parseFloat(document.getElementById('annualConsumption').value)||0);
   const tariff = Math.max(0, parseFloat(document.getElementById('tariff').value)||0);
   const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value)||0;
@@ -765,24 +870,7 @@ function recalcAll() {
   const selfConsume = 0.85;
   const pl = CONFIG.placement[state.placement];
   
-  const genPerKwp = Math.round(psh * 365 * eta * 0.82);
-  document.getElementById('kpi-psh').innerHTML = psh + ' <span class="unit">год/день</span>';
-  document.getElementById('kpi-gen-kwp').innerHTML = genPerKwp + ' <span class="unit">кВт·год/рік</span>';
-  document.getElementById('kpi-annual-cost').innerHTML = fmtN(annual * tariff) + ' <span class="unit">₴</span>';
-  document.getElementById('kpi-daily').innerHTML = fmtN(annual / 365, 0) + ' <span class="unit">кВт·год</span>';
-  
-  if (state.dgOn) {
-    const dgP = Math.max(0, parseFloat(document.getElementById('dgPower').value)||0);
-    const dgFuel = Math.max(0, parseFloat(document.getElementById('dgFuel').value)||0);
-    const dgFPrice = Math.max(0, parseFloat(document.getElementById('dgFuelPrice').value)||0);
-    const dgH = Math.max(0, parseFloat(document.getElementById('dgHours').value)||0);
-    const dgCostYear = dgP * dgFuel * dgH * 365 * dgFPrice;
-    const dgFuelYear = dgP * dgFuel * dgH * 365;
-    document.getElementById('kpi-dg-cost').innerHTML = fmtC(dgCostYear);
-    document.getElementById('kpi-dg-fuel').innerHTML = fmtN(dgFuelYear,0) + ' л/рік';
-    document.getElementById('kpi-dg-saving').innerHTML = fmtC(dgCostYear * 0.5) + '/рік';
-  }
-  
+  // Розрахунок потужності
   let power, panels, effArea, totalArea;
   if (state.calcMode === 'area') {
     const area = Math.max(0, parseFloat(document.getElementById('availArea').value)||0);
@@ -798,23 +886,10 @@ function recalcAll() {
     totalArea = effArea / pl.uf;
   }
   
-  document.getElementById('r-power').innerHTML = fmtN(power,1) + ' <span class="unit">кВп</span>';
-  document.getElementById('r-power-sub').textContent = state.orient + ' ×' + state.orientCoeff;
-  document.getElementById('r-panels').innerHTML = fmtN(panels) + ' <span class="unit">шт.</span>';
-  document.getElementById('r-area').innerHTML = fmtN(effArea) + ' <span class="unit">м²</span>';
-  document.getElementById('r-area-sub').textContent = 'з ' + fmtN(totalArea) + ' м² (' + Math.round(pl.uf*100) + '%)';
-  document.getElementById('r-spec').innerHTML = pl.spm.toFixed(1) + ' <span class="unit">м²/кВп</span>';
-  
   const annualGen = power * psh * 365 * eta * state.orientCoeff * pl.genK;
   const coverage = annual > 0 ? Math.min(100, (annualGen / annual) * 100) : 0;
-  document.getElementById('r-annual-gen').innerHTML = fmtN(annualGen,0);
-  document.getElementById('r-coverage').innerHTML = coverage.toFixed(1) + '<span class="unit">%</span>';
-  document.getElementById('r-coverage-sub').textContent = fmtN(annualGen * selfConsume,0) + ' кВт·год/рік';
-  document.getElementById('r-daily-gen').innerHTML = fmtN(annualGen / 365,1);
-  document.getElementById('r-degrad').innerHTML = (100 - CONFIG.solar.degradation * 25 * 100).toFixed(1) + ' <span class="unit">%</span>';
   
-  updateChartMonthly(annualGen, annual);
-  
+  // CAPEX
   const pricePerKwp = parseInt(document.getElementById('sesType').value);
   const cableLen = Math.max(0, parseFloat(document.getElementById('cableLen').value)||0);
   const transformerCost = Math.max(0, parseFloat(document.getElementById('transformerCost').value)||0);
@@ -828,14 +903,6 @@ function recalcAll() {
   const cContingency = subTotal * CONFIG.finance.contingency_pct;
   const capex = subTotal + cDesign + cContingency;
   const opex = capex * CONFIG.finance.opex_pct;
-  
-  document.getElementById('c-base').innerHTML = fmtC(cBase);
-  document.getElementById('c-cable').innerHTML = fmtC(cCable);
-  document.getElementById('c-bess').innerHTML = bessKwh > 0 ? fmtC(cBESS) : '—';
-  document.getElementById('c-transformer').innerHTML = cTransformer > 0 ? fmtC(cTransformer) : '—';
-  document.getElementById('c-design').innerHTML = fmtC(cDesign);
-  document.getElementById('c-contingency').innerHTML = fmtC(cContingency);
-  document.getElementById('c-total').innerHTML = fmtC(capex);
   
   const saving1 = annualGen * selfConsume * tariff;
   const netCF1 = saving1 - opex;
@@ -863,133 +930,52 @@ function recalcAll() {
   for (let y=1; y<=25; y++) totalGen += annualGen * Math.pow(1-CONFIG.solar.degradation, y);
   const lcoe = totalGen > 0 ? (capex + opex*25) / totalGen : 0;
   
+  // Оновлення DOM
+  document.getElementById('r-power').innerHTML = fmtN(power,1) + ' <span class="unit">кВп</span>';
+  document.getElementById('r-panels').innerHTML = fmtN(panels) + ' <span class="unit">шт.</span>';
+  document.getElementById('r-annual-gen').innerHTML = fmtN(annualGen,0);
+  document.getElementById('r-coverage').innerHTML = coverage.toFixed(1) + '<span class="unit">%</span>';
   document.getElementById('r-saving-y1').innerHTML = fmtC(saving1) + '/рік';
   document.getElementById('r-payback').innerHTML = isFinite(payback) ? payback.toFixed(1) + ' <span class="unit">р.</span>' : '—';
+  document.getElementById('c-total').innerHTML = fmtC(capex);
   document.getElementById('r-npv').textContent = fmtC(npv);
   document.getElementById('r-irr').innerHTML = irrVal > 0 ? irrVal.toFixed(1) + ' <span class="unit">%</span>' : '—';
   document.getElementById('r-lcoe').textContent = lcoe.toFixed(2) + ' ₴/кВт·год';
-  document.getElementById('r-opex').textContent = fmtC(opex) + '/рік';
   
-  const insight = payback < 6 ? '✅ Відмінна інвестиція! Окупність ' + payback.toFixed(1) + ' р.' : (payback < 10 ? '📊 Хороша інвестиція. Окупність ' + payback.toFixed(1) + ' р.' : '⚠️ Строк окупності ' + payback.toFixed(1) + ' р. Розгляньте зменшення CAPEX.');
-  document.getElementById('finance-insight').textContent = insight;
+  // Збереження стану
+  state.R = { power, annualGen, saving1, capex, payback, npv, lcoe, irr: irrVal, coverage, annual, tariff, psh, placementName: pl.name, orient: state.orient };
   
-  let costWithout = 0;
-  for (let y=1; y<=25; y++) costWithout += annual * tariff * Math.pow(1+tariffGrowth, y);
-  document.getElementById('cmp-without').textContent = fmtC(costWithout);
-  document.getElementById('cmp-with').textContent = fmtC(capex + opex*25);
-  document.getElementById('cmp-diff').textContent = '+ ' + fmtC(costWithout - (capex + opex*25));
-  document.getElementById('cmp-tariff-now').textContent = tariff.toFixed(2) + ' ₴/кВт·год';
-  document.getElementById('cmp-lcoe').textContent = lcoe.toFixed(2) + ' ₴/кВт·год';
-  document.getElementById('cmp-lcoe-diff').textContent = '−' + (tariff - lcoe).toFixed(2) + ' ₴';
-  
-  const sc1C = cBase + cCable + cTransformer + cDesign + cContingency;
-  const bessAdd = bessKwh > 0 ? cBESS : power * 100 * 35000 / 1000;
-  const dgFuelSavYear = state.dgOn ? Math.max(0, parseFloat(document.getElementById('dgPower').value)||0) * 0.27 * Math.max(0, parseFloat(document.getElementById('dgHours').value)||0) * 365 * Math.max(0, parseFloat(document.getElementById('dgFuelPrice').value)||0) * 0.5 : 0;
-  const sc = [
-    { C: sc1C, save: annualGen * selfConsume * tariff },
-    { C: sc1C * 1.02, save: annualGen * selfConsume * tariff + annualGen * 0.15 * tariff * 0.7 },
-    { C: sc1C * 1.05 + bessAdd, save: annualGen * selfConsume * tariff * 1.05 },
-    { C: sc1C + CONFIG.prices.DG_adapter, save: annualGen * selfConsume * tariff + dgFuelSavYear },
-    { C: (sc1C + CONFIG.prices.DG_adapter) * 1.1 + bessAdd, save: (annualGen * selfConsume * tariff + dgFuelSavYear) * 1.05 }
-  ];
-  sc.forEach(s => { s.op = s.C * CONFIG.finance.opex_pct; s.pay = s.C / (s.save - s.op); });
-  const bessHours = ((bessKwh > 0 ? bessKwh : power * 0.3) / Math.max(1, annual/365) * 24);
-  for (let i=0;i<5;i++) {
-    if (document.getElementById('sc'+i+'-capex')) document.getElementById('sc'+i+'-capex').textContent = fmtC(sc[i].C);
-    if (document.getElementById('sc'+i+'-pay')) document.getElementById('sc'+i+'-pay').textContent = isFinite(sc[i].pay) ? sc[i].pay.toFixed(1)+' р.' : '—';
-  }
-  if (document.getElementById('sc2-reserve')) document.getElementById('sc2-reserve').textContent = bessHours.toFixed(1)+' год';
-  if (document.getElementById('sc3-fuel')) document.getElementById('sc3-fuel').textContent = fmtC(dgFuelSavYear)+'/рік';
-  if (document.getElementById('sc4-reserve')) document.getElementById('sc4-reserve').textContent = (bessHours*2).toFixed(1)+' год';
-  if (document.getElementById('sc4-saving')) document.getElementById('sc4-saving').textContent = fmtC(sc[4].save)+'/рік';
-  
-  // ========== ПОКРАЩЕНА ПОРІВНЯЛЬНА ТАБЛИЦЯ ==========
-  const rows = [
-    ['CAPEX (інвестиції)', sc.map(s => fmtC(s.C))],
-    ['Річна економія', sc.map(s => fmtC(s.save))],
-    ['Окупність (років)', sc.map(s => isFinite(s.pay) ? s.pay.toFixed(1)+' р.' : '—')],
-    ['NPV за 25 років', sc.map((s, idx) => {
-      let npvVal = -s.C;
-      for (let y=1; y<=25; y++) {
-        const cf = s.save * Math.pow(1+tariffGrowth, y) * Math.pow(1 - CONFIG.solar.degradation, y) - s.op;
-        npvVal += cf / Math.pow(1+CONFIG.finance.discountRate, y);
-      }
-      return fmtC(npvVal);
-    })],
-    ['IRR (%)', sc.map((s, idx) => {
-      let irrGuess = 0.15;
-      for (let iter=0; iter<20; iter++) {
-        let npvIr = -s.C;
-        for (let y=1; y<=25; y++) {
-          const cf = s.save * Math.pow(1+tariffGrowth, y) - s.op;
-          npvIr += cf / Math.pow(1+irrGuess, y);
-        }
-        if (Math.abs(npvIr) < 1000) break;
-        irrGuess += npvIr > 0 ? 0.01 : -0.01;
-      }
-      return (irrGuess * 100).toFixed(1) + '%';
-    })],
-    ['Резерв (автономність)', ['Немає', 'Немає', bessHours.toFixed(1)+' год', 'ДГ (паливо)', (bessHours*2).toFixed(1)+' год']],
-    ['Продаж надлишку', ['Ні', 'Так (70% тарифу)', 'Ні', 'Ні', 'Ні']],
-    ['Наявність батареї', ['Ні', 'Ні', 'Так', 'Ні', 'Так']],
-    ['Наявність ДГ', ['Ні', 'Ні', 'Ні', 'Так', 'Так']]
-  ];
-  
-  document.getElementById('scenarioCompareBody').innerHTML = rows.map(([lbl, vals]) => `<tr><td class="row-label">${lbl}</td>${vals.map(v => `<td>${v}</td>`).join('')}</tr>`).join('');
-  
+  // Оновлення графіків
+  updateChartMonthly(annualGen, annual);
   updateChartCashflow(capex, netCF1, tariffGrowth);
   updateChartCapex(cBase, cCable, cBESS, cTransformer, cDesign+cContingency);
-  
-  state.R = { power, annualGen, saving1, capex, payback, npv, lcoe, irr: irrVal, coverage, annual, tariff, psh, effArea, totalArea, panels, placementName: pl.name, orient: state.orient };
-  updateReport(); 
+  updateReport();
   updateLivePreview();
   saveData();
 }
 
-const MONTHS = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
-
+// ========== ГРАФІКИ ==========
 function updateChartMonthly(annualGen, annual) {
   const ctx = document.getElementById('chartMonthly').getContext('2d');
+  const MONTHS = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
   const seasonSum = CONFIG.solar.seasonality.reduce((a,b)=>a+b,0);
   const monthlyGen = CONFIG.solar.seasonality.map(k => Math.round(annualGen / 12 * k / (seasonSum/12)));
   const monthlyConsumption = Array(12).fill(Math.round(annual / 12));
-  
   const usedGen = monthlyGen.map((gen, i) => Math.min(gen, monthlyConsumption[i]));
   const gridNeeded = monthlyConsumption.map((cons, i) => Math.max(0, cons - monthlyGen[i]));
   const surplus = monthlyGen.map((gen, i) => Math.max(0, gen - monthlyConsumption[i]));
-  
-  let surplusLabel = '⚠️ Надлишок (обрізається)';
-  let surplusColor = '#EF4444';
-  
-  if (currentScenario === 'feedin') {
-    surplusLabel = '💰 Продаж у мережу (дохід)';
-    surplusColor = '#3B82F6';
-  }
+  const surplusLabel = currentScenario === 'feedin' ? '💰 Продаж у мережу (дохід)' : '⚠️ Надлишок (обрізається)';
+  const surplusColor = currentScenario === 'feedin' ? '#3B82F6' : '#EF4444';
   
   if (charts.monthly) charts.monthly.destroy();
-  
   charts.monthly = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels: MONTHS,
-      datasets: [
-        { label: '☀️ Генерація СЕС (використана)', data: usedGen, backgroundColor: '#F59E0B', borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' },
-        { label: '🔌 Споживання з мережі (купуємо)', data: gridNeeded, backgroundColor: '#10B981', borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' },
-        { label: surplusLabel, data: surplus, backgroundColor: surplusColor, borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'bottom', labels: { color: '#475569', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 10, usePointStyle: true, pointStyle: 'rect' } },
-        tooltip: { callbacks: { label: (ctx) => { let label = ctx.dataset.label || ''; let val = ctx.raw; if (val > 0) { if (ctx.datasetIndex === 2 && currentScenario === 'feedin') { const tariff = parseFloat(document.getElementById('tariff').value) || 4.32; return `${label}: ${val.toLocaleString('uk-UA')} кВт·год (≈ ${(val * tariff * 0.7).toLocaleString('uk-UA')} грн)`; } return `${label}: ${val.toLocaleString('uk-UA')} кВт·год`; } return null; } } }
-      },
-      scales: {
-        x: { ticks: { color: '#475569', font: { size: 11, weight: '500' } }, grid: { color: '#E2E8F0' }, stacked: true },
-        y: { stacked: true, ticks: { color: '#475569', font: { size: 11 }, callback: v => v.toLocaleString('uk-UA') + ' кВт·год' }, grid: { color: '#E2E8F0' }, title: { display: true, text: 'Електроенергія, кВт·год', color: '#64748B', font: { size: 12 } } }
-      }
-    }
+    data: { labels: MONTHS, datasets: [
+      { label: '☀️ Генерація СЕС (використана)', data: usedGen, backgroundColor: '#F59E0B', stack: 'energy' },
+      { label: '🔌 Споживання з мережі (купуємо)', data: gridNeeded, backgroundColor: '#10B981', stack: 'energy' },
+      { label: surplusLabel, data: surplus, backgroundColor: surplusColor, stack: 'energy' }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } } }
   });
 }
 
@@ -998,860 +984,115 @@ function updateChartCashflow(capex, cf1, growth) {
   let cum = -capex;
   const data = [cum];
   const labels = ['0'];
-  
-  for (let y = 1; y <= 25; y++) {
-    cum += cf1 * Math.pow(1 + growth, y);
-    data.push(Math.round(cum));
-    labels.push('' + y);
-  }
-  
-  const negativeData = data.map(v => v < 0 ? v : 0);
-  const positiveData = data.map(v => v >= 0 ? v : 0);
-  
-  let paybackYear = null;
-  for (let i = 0; i < data.length - 1; i++) {
-    if (data[i] < 0 && data[i + 1] >= 0) {
-      paybackYear = i + 1;
-      break;
-    }
-  }
-  
+  for (let y = 1; y <= 25; y++) { cum += cf1 * Math.pow(1 + growth, y); data.push(Math.round(cum)); labels.push('' + y); }
   if (charts.cashflow) charts.cashflow.destroy();
-  
   charts.cashflow = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Збитки (від\'ємний потік)',
-          data: negativeData,
-          borderColor: '#EF4444',
-          backgroundColor: 'rgba(239,68,68,0.1)',
-          fill: true,
-          tension: 0.35,
-          borderWidth: 2.5,
-          pointRadius: 0,
-          segment: { borderColor: (ctx) => { const value = ctx.p0.parsed.y; return value < 0 ? '#EF4444' : 'transparent'; } }
-        },
-        {
-          label: 'Прибуток (додатний потік)',
-          data: positiveData,
-          borderColor: '#10B981',
-          backgroundColor: 'rgba(16,185,129,0.15)',
-          fill: true,
-          tension: 0.35,
-          borderWidth: 2.5,
-          pointRadius: 0,
-          segment: { borderColor: (ctx) => { const value = ctx.p0.parsed.y; return value >= 0 ? '#10B981' : 'transparent'; } }
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'top', labels: { color: '#475569', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 10, usePointStyle: true } },
-        tooltip: { callbacks: { label: (ctx) => { let val = ctx.raw; let label = ctx.dataset.label || ''; if (val === 0) return null; return `${label}: ${val.toLocaleString('uk-UA')} ₴`; } } }
-      },
-      scales: {
-        x: { ticks: { color: '#475569', font: { size: 11, weight: '500' } }, grid: { color: '#E2E8F0' }, title: { display: true, text: 'Рік', color: '#64748B', font: { size: 12 } } },
-        y: { ticks: { color: '#475569', font: { size: 11 }, callback: v => { if (v === 0) return '0 ₴'; return (v / 1000).toFixed(0) + 'k ₴'; } }, grid: { color: '#E2E8F0' }, title: { display: true, text: 'Накопичений грошовий потік, ₴', color: '#64748B', font: { size: 12 } } }
-      }
-    },
-    plugins: [{
-      afterDatasetsDraw(chart) {
-        const { ctx, chartArea } = chart;
-        if (!paybackYear) return;
-        ctx.save();
-        const x = chart.scales.x.getPixelForValue(paybackYear);
-        ctx.beginPath();
-        ctx.moveTo(x, chartArea.top);
-        ctx.lineTo(x, chartArea.bottom);
-        ctx.strokeStyle = '#F59E0B';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 6]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#F59E0B';
-        ctx.font = 'bold 10px "Inter", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`💰 Окупність: ${paybackYear} р.`, x, chartArea.top - 5);
-        ctx.restore();
-      }
-    }]
+    data: { labels, datasets: [{ label: 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
   });
 }
+
 function updateChartCapex(cBase, cCable, cBESS, cTrans, cOther) {
   const ctx = document.getElementById('chartCapex').getContext('2d');
-  const labels = ['СЕС','Кабель','BESS','Трансформатор','Проєкт+Резерв'];
   if (charts.capex) charts.capex.destroy();
-  charts.capex = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: [cBase, cCable, cBESS, cTrans, cOther], backgroundColor: ['#F59E0B','#3B82F6','#10B981','#8B5CF6','#94A3B8'], borderWidth: 0, hoverOffset: 6 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'right', labels: { font:{size:10}, boxWidth:10, padding:8 } } } } });
+  charts.capex = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: ['СЕС','Кабель','BESS','Трансформатор','Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cOther], backgroundColor: ['#F59E0B','#3B82F6','#10B981','#8B5CF6','#94A3B8'] }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 10 } } } } }
+  });
 }
 
 function updateReport() {
   const R = state.R;
-  document.getElementById('rp-date').textContent = new Date().toLocaleDateString('uk-UA');
-  document.getElementById('rp-object-name').textContent = 'Об\'єкт: ' + (document.getElementById('objName').value||'—') + (document.getElementById('objCity').value ? ' · ' + document.getElementById('objCity').value : '');
-  document.getElementById('rp-r-obj').textContent = document.getElementById('objName').value || '—';
-  const regSel = document.getElementById('region');
-  document.getElementById('rp-r-region').textContent = (regSel.options[regSel.selectedIndex]?.text||'—') + ' / PSH ' + getPSH() + ' год/день';
-  document.getElementById('rp-r-cons').textContent = fmtN(R.annual,0) + ' кВт·год/рік · ' + fmtN(R.tariff,2) + ' ₴/кВт·год';
-  document.getElementById('rp-r-placement').textContent = R.placementName || '—';
-  if (R.power) document.getElementById('rp-power').innerHTML = fmtN(R.power,1)+'<span class="rp-unit"> кВп</span>';
-  if (R.annualGen) document.getElementById('rp-gen').innerHTML = fmtN(R.annualGen,0)+'<span class="rp-unit"> кВт·год/рік</span>';
-  if (R.saving1) document.getElementById('rp-saving').innerHTML = fmtC(R.saving1)+'/рік';
-  if (R.capex) document.getElementById('rp-capex').textContent = fmtC(R.capex);
-  if (R.payback) document.getElementById('rp-payback').innerHTML = isFinite(R.payback)?R.payback.toFixed(1)+'<span class="rp-unit"> р.</span>':'—';
-  if (R.npv) document.getElementById('rp-npv').textContent = fmtC(R.npv);
-  if (R.capex) document.getElementById('rp-f-capex').textContent = fmtC(R.capex);
-  if (R.irr) document.getElementById('rp-f-irr').textContent = (R.irr||0).toFixed(1)+'% / '+(R.lcoe||0).toFixed(2)+' ₴/кВт·год';
-  if (R.coverage) document.getElementById('rp-f-cover').textContent = (R.coverage||0).toFixed(1)+'%';
-  const leadInfo = [document.getElementById('leadName').value, document.getElementById('leadCompany').value].filter(Boolean).join(' · ');
-  document.getElementById('rp-lead-info').textContent = leadInfo ? 'Підготовлено для: '+leadInfo : '';
+  if (!R) return;
+  document.getElementById('rp-power').innerHTML = fmtN(R.power,1)+'<span class="rp-unit"> кВп</span>';
+  document.getElementById('rp-gen').innerHTML = fmtN(R.annualGen,0)+'<span class="rp-unit"> кВт·год/рік</span>';
+  document.getElementById('rp-saving').innerHTML = fmtC(R.saving1)+'/рік';
+  document.getElementById('rp-capex').textContent = fmtC(R.capex);
+  document.getElementById('rp-payback').innerHTML = isFinite(R.payback)?R.payback.toFixed(1)+'<span class="rp-unit"> р.</span>':'—';
+  document.getElementById('rp-npv').textContent = fmtC(R.npv);
 }
-  // Функція для оновлення графіків у звіті перед PDF
-function updateReportCharts() {
-  const R = state.R;
-  if (!R.annualGen) return;
-  
-  const ctxMonthly = document.getElementById('rp-chart-monthly');
-  if (ctxMonthly) {
-    const seasonSum = CONFIG.solar.seasonality.reduce((a,b)=>a+b,0);
-    const mGen = CONFIG.solar.seasonality.map(k => Math.round(R.annualGen / 12 * k / (seasonSum / 12)));
-    const mCons = Array(12).fill(Math.round(R.annual / 12));
-    const used = mGen.map((g,i) => Math.min(g, mCons[i]));
-    const grid = mCons.map((c,i) => Math.max(0, c - mGen[i]));
-    const surplus = mGen.map((g,i) => Math.max(0, g - mCons[i]));
-    
-    if (window.rpMonthlyChart) window.rpMonthlyChart.destroy();
-    window.rpMonthlyChart = new Chart(ctxMonthly, {
-      type: 'bar',
-      data: {
-        labels: MONTHS,
-        datasets: [
-          { label: 'Генерація СЕС', data: used, backgroundColor: '#F59E0B', borderRadius: 4, stack: 'e' },
-          { label: 'Споживання з мережі', data: grid, backgroundColor: '#10B981', borderRadius: 4, stack: 'e' },
-          { label: 'Надлишок', data: surplus, backgroundColor: '#EF4444', borderRadius: 4, stack: 'e' }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 } } } } }
-    });
-  }
-  
-    const ctxCashflow = document.getElementById('rp-chart-cashflow');
-  if (ctxCashflow) {
-    let cum = -R.capex;
-    const data = [cum];
-    const labels = ['0'];
-    for (let y = 1; y <= 25; y++) {
-      cum += (R.saving1 - (R.capex * CONFIG.finance.opex_pct)) * Math.pow(1 + parseFloat(document.getElementById('tariffGrowth').value) || 0, y);
-      data.push(Math.round(cum));
-      labels.push('' + y);
-    }
-    
-    // Знаходимо рік окупності
-    let paybackYear = null;
-    for (let i = 0; i < data.length - 1; i++) {
-      if (data[i] < 0 && data[i + 1] >= 0) {
-        paybackYear = i + 1;
-        break;
-      }
-    }
-    
-    if (window.rpCashflowChart) window.rpCashflowChart.destroy();
-    window.rpCashflowChart = new Chart(ctxCashflow, {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35, borderWidth: 2 }] },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: true, 
-        plugins: { 
-          legend: { position: 'top', labels: { font: { size: 9 } } },
-          tooltip: { callbacks: { label: (ctx) => { return `${ctx.dataset.label}: ${ctx.raw.toLocaleString('uk-UA')} ₴`; } } }
-        }
-      },
-      plugins: [{
-        afterDatasetsDraw(chart) {
-          if (!paybackYear) return;
-          const { ctx, chartArea, scales } = chart;
-          ctx.save();
-          const x = scales.x.getPixelForValue(paybackYear);
-          ctx.beginPath();
-          ctx.moveTo(x, chartArea.top);
-          ctx.lineTo(x, chartArea.bottom);
-          ctx.strokeStyle = '#F59E0B';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([6, 6]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = '#F59E0B';
-          ctx.font = 'bold 9px "Inter", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(`Окупність: ${paybackYear} р.`, x, chartArea.top - 5);
-          ctx.restore();
-        }
-      }]
-    });
-  }
-  
-  //const ctxCapex = document.getElementById('rp-chart-capex');
-  //if (ctxCapex) {
-    //const cBase = parseFloat(document.getElementById('c-base').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    //const cCable = parseFloat(document.getElementById('c-cable').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    //const cBESS = parseFloat(document.getElementById('c-bess').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    //const cTrans = parseFloat(document.getElementById('c-transformer').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    //const cDesign = parseFloat(document.getElementById('c-design').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    //const cCont = parseFloat(document.getElementById('c-contingency').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    
-    //if (window.rpCapexChart) window.rpCapexChart.destroy();
-    //window.rpCapexChart = new Chart(ctxCapex, {
-     // type: 'doughnut',
-     // data: { labels: ['СЕС', 'Кабель', 'BESS', 'Трансформатор', 'Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cDesign + cCont], backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#94A3B8'], borderWidth: 0 }] },
-     // options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 9 } } } } }
-   // });
- // }
-}
-function selectScenario(i) { state.selectedScenario = i; document.querySelectorAll('.scenario-card').forEach((c,j) => c.classList.toggle('selected', j===i)); }
 
+// ========== PDF ГЕНЕРАЦІЯ ==========
 async function generatePDF() {
   const btn = event.target;
   const originalText = btn.innerHTML;
   btn.innerHTML = '⏳ Генерація...';
   btn.disabled = true;
   
-  let loader = document.getElementById('pdfLoader');
-  if (!loader) {
-    loader = document.createElement('div');
-    loader.id = 'pdfLoader';
-    loader.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;color:white;font-size:16px;flex-direction:column;gap:16px;';
-    loader.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:#F59E0B;border-radius:50%;animation:spin 0.8s linear infinite;"></div><div id="pdfLoaderText">Підготовка звіту...</div>';
-    document.body.appendChild(loader);
-    if (!document.querySelector('#pdfLoaderStyle')) {
-      const style = document.createElement('style');
-      style.id = 'pdfLoaderStyle';
-      style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-      document.head.appendChild(style);
-    }
-  }
-  loader.style.display = 'flex';
-  const loaderText = document.getElementById('pdfLoaderText');
+  const loader = document.createElement('div');
+  loader.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;color:white;font-size:16px;flex-direction:column;gap:16px;';
+  loader.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:#F59E0B;border-radius:50%;animation:spin 0.8s linear infinite;"></div><div>Формування PDF...</div>';
+  document.body.appendChild(loader);
   
   try {
-    loaderText.textContent = 'Оновлення даних...';
     recalcAll();
     await new Promise(r => setTimeout(r, 300));
     
-    loaderText.textContent = 'Підготовка графіків...';
+    // Клонуємо графіки
+    const chartMonthly = document.getElementById('chartMonthly');
+    const chartCashflow = document.getElementById('chartCashflow');
+    let monthlyImg = null, cashflowImg = null;
     
-    // Отримуємо графіки та зменшуємо їх
-    const originalChartMonthly = document.getElementById('chartMonthly');
-    const originalChartCashflow = document.getElementById('chartCashflow');
-    
-    let chartMonthlyImg = null;
-    let chartCashflowImg = null;
-    
-    // Зменшений графік 1 (300px ширини)
-    if (originalChartMonthly) {
-      try {
-        const cloneCanvas = document.createElement('canvas');
-        const ctx = cloneCanvas.getContext('2d');
-        const originalWidth = originalChartMonthly.width;
-        const originalHeight = originalChartMonthly.height;
-        cloneCanvas.width = 320;
-        cloneCanvas.height = 180;
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, cloneCanvas.width, cloneCanvas.height);
-        ctx.drawImage(originalChartMonthly, 0, 0, originalWidth, originalHeight, 0, 0, cloneCanvas.width, cloneCanvas.height);
-        chartMonthlyImg = cloneCanvas.toDataURL('image/jpeg', 0.6);
-      } catch(e) { console.warn(e); }
+    if (chartMonthly) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 320; canvas.height = 180;
+      canvas.getContext('2d').drawImage(chartMonthly, 0, 0, canvas.width, canvas.height);
+      monthlyImg = canvas.toDataURL('image/jpeg', 0.6);
+    }
+    if (chartCashflow) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 320; canvas.height = 150;
+      canvas.getContext('2d').drawImage(chartCashflow, 0, 0, canvas.width, canvas.height);
+      cashflowImg = canvas.toDataURL('image/jpeg', 0.6);
     }
     
-    // Зменшений графік 2 (300px ширини)
-    if (originalChartCashflow) {
-      try {
-        const cloneCanvas = document.createElement('canvas');
-        const ctx = cloneCanvas.getContext('2d');
-        const originalWidth = originalChartCashflow.width;
-        const originalHeight = originalChartCashflow.height;
-        cloneCanvas.width = 320;
-        cloneCanvas.height = 150;
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, cloneCanvas.width, cloneCanvas.height);
-        ctx.drawImage(originalChartCashflow, 0, 0, originalWidth, originalHeight, 0, 0, cloneCanvas.width, cloneCanvas.height);
-        chartCashflowImg = cloneCanvas.toDataURL('image/jpeg', 0.6);
-      } catch(e) { console.warn(e); }
-    }
-    
-    // Отримуємо дані
     const objName = document.getElementById('objName').value || 'Об\'єкт';
-    const city = document.getElementById('objCity').value || '';
-    const clientName = document.getElementById('leadName').value || '';
-    const clientCompany = document.getElementById('leadCompany').value || '';
-    const clientPhone = document.getElementById('leadPhone').value || '';
-    const clientEmail = document.getElementById('leadEmail').value || '';
-    const tariff = parseFloat(document.getElementById('tariff').value) || 4.32;
-    const consumption = parseFloat(document.getElementById('annualConsumption').value) || 0;
-    const power = state.R?.power || 0;
-    const annualGen = state.R?.annualGen || 0;
-    const capex = state.R?.capex || 0;
-    const savings = state.R?.saving1 || 0;
-    const payback = state.R?.payback || 0;
-    const npv = state.R?.npv || 0;
-    const irr = state.R?.irr || 0;
-    const lcoe = state.R?.lcoe || 0;
-    const coverage = state.R?.coverage || 0;
-    const placementName = state.R?.placementName || '—';
-    const psh = state.R?.psh || 4.0;
+    const R = state.R;
     
-    const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
-    let costWithout = 0;
-    for(let y = 1; y <= 25; y++) {
-      costWithout += consumption * tariff * Math.pow(1 + tariffGrowth, y-1);
-    }
-    const costWith = capex + (capex * 0.013 * 25);
-    const netBenefit = costWithout - costWith;
-    
-    // Логотип (опціонально)
-    const logoHtml = ``; // Пусто, якщо не потрібен
-    
-    // КОМПАКТНИЙ HTML ДЛЯ PDF (ОДНА СТОРІНКА)
-    const pdfContainer = document.createElement('div');
-    pdfContainer.style.cssText = `
-      position: absolute;
-      top: -9999px;
-      left: 0;
-      width: 700px;
-      background: white;
-      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-      padding: 15px 20px;
-      line-height: 1.3;
-    `;
-    
-    pdfContainer.innerHTML = `
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; background: white; }
-        .header { text-align: center; margin-bottom: 8px; }
-        .header h1 { color: #F59E0B; font-size: 16px; margin-bottom: 2px; }
-        .header h2 { font-size: 12px; color: #333; margin-bottom: 4px; }
-        .header .date { color: #888; font-size: 8px; }
-        .divider { height: 1px; background: #F59E0B; margin: 6px 0; }
-        .section-title { color: #F59E0B; font-size: 10px; font-weight: bold; margin: 8px 0 5px 0; border-left: 2px solid #F59E0B; padding-left: 6px; }
-        .info-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #eee; font-size: 9px; }
-        .info-label { font-weight: bold; color: #555; }
-        .info-value { color: #333; }
-        .grid-2 { display: flex; gap: 12px; margin: 6px 0; }
-        .grid-item { flex: 1; }
-        .charts-row { display: flex; gap: 12px; margin: 10px 0; justify-content: space-between; }
-        .chart-box { flex: 1; text-align: center; background: #fafafa; border-radius: 6px; padding: 6px; border: 1px solid #eee; }
-        .chart-caption { font-size: 7px; color: #888; margin-top: 4px; text-align: center; }
-        .benefit { background: #e8f5e9; border-radius: 4px; padding: 5px; text-align: center; margin: 6px 0; }
-        .benefit-value { font-size: 14px; font-weight: bold; color: #2e7d32; }
-        .contacts { background: #f5f5f5; border-radius: 4px; padding: 6px; margin: 8px 0; text-align: center; }
-        .contacts .title { font-weight: bold; color: #F59E0B; font-size: 9px; margin-bottom: 4px; }
-        .contacts .row { font-size: 8px; color: #555; margin: 2px 0; display: inline-block; margin-right: 12px; }
-        .recommend { background: #fff3e0; padding: 5px; border-radius: 4px; margin: 8px 0; font-size: 9px; text-align: center; }
-        .footer { margin-top: 8px; padding-top: 6px; border-top: 1px solid #ddd; font-size: 7px; color: #999; text-align: center; }
-        .chart-img { max-width: 100%; height: auto; border-radius: 4px; }
-        .obj-name { text-align: center; font-size: 11px; font-weight: bold; margin: 5px 0; }
-        .obj-detail { text-align: center; font-size: 9px; color: #666; margin-bottom: 8px; }
-      </style>
-      
-      ${logoHtml}
-      
-      <div class="header">
-        <h1>ПОПЕРЕДНІЙ РОЗРАХУНОК</h1>
-        <h2>Сонячної електростанції</h2>
-        <div class="date">${new Date().toLocaleDateString('uk-UA')}</div>
-      </div>
-      
-      <div class="divider"></div>
-      
-      <div class="obj-name">${escapeHtml(objName)}${city ? ' · ' + escapeHtml(city) : ''}</div>
-      ${clientName ? `<div class="obj-detail">${escapeHtml(clientName)}${clientCompany ? ' · ' + escapeHtml(clientCompany) : ''}</div>` : ''}
-      
+    // Створюємо PDF-контейнер
+    const container = document.createElement('div');
+    container.style.cssText = 'position:absolute;top:-9999px;left:0;width:700px;background:white;padding:15px 20px;font-family:"Inter",sans-serif;';
+    container.innerHTML = `
+      <style>.h1{color:#F59E0B;font-size:16px;text-align:center}.h2{font-size:12px;text-align:center}.grid{display:flex;gap:12px}.info-row{display:flex;justify-content:space-between;padding:3px 0;font-size:9px;border-bottom:1px solid #eee}.section-title{color:#F59E0B;font-size:10px;font-weight:bold;margin:8px 0}.chart-box{flex:1;text-align:center;background:#fafafa;padding:6px;border:1px solid #eee;border-radius:6px}.benefit{background:#e8f5e9;padding:5px;text-align:center;margin:6px 0;border-radius:4px}.contacts{background:#f5f5f5;padding:6px;text-align:center;margin:8px 0;border-radius:4px}.footer{font-size:7px;color:#999;text-align:center;margin-top:8px;padding-top:6px;border-top:1px solid #ddd}</style>
+      <div style="text-align:center"><div class="h1">ПОПЕРЕДНІЙ РОЗРАХУНОК</div><div class="h2">Сонячної електростанції</div><div style="font-size:8px;color:#888">${new Date().toLocaleDateString('uk-UA')}</div></div>
+      <div style="height:1px;background:#F59E0B;margin:6px 0"></div>
+      <div style="text-align:center;font-size:11px;font-weight:bold">${escapeHtml(objName)}</div>
       <div class="section-title">📊 ОСНОВНІ ПОКАЗНИКИ</div>
-      
-      <div class="grid-2">
-        <div class="grid-item">
-          <div class="info-row"><span class="info-label">Потужність СЕС:</span><span class="info-value">${power.toFixed(1)} кВт</span></div>
-          <div class="info-row"><span class="info-label">Річна генерація:</span><span class="info-value">${Math.round(annualGen).toLocaleString()} кВт·год</span></div>
-          <div class="info-row"><span class="info-label">Покриття:</span><span class="info-value">${coverage.toFixed(1)}%</span></div>
-          <div class="info-row"><span class="info-label">CAPEX:</span><span class="info-value">${Math.round(capex/1000).toLocaleString()} тис. грн</span></div>
-        </div>
-        <div class="grid-item">
-          <div class="info-row"><span class="info-label">Економія/рік:</span><span class="info-value">${Math.round(savings).toLocaleString()} грн</span></div>
-          <div class="info-row"><span class="info-label">Окупність:</span><span class="info-value">${payback.toFixed(1)} р.</span></div>
-          <div class="info-row"><span class="info-label">NPV (25р):</span><span class="info-value">${Math.round(npv/1000).toLocaleString()} тис. грн</span></div>
-          <div class="info-row"><span class="info-label">IRR/LCOE:</span><span class="info-value">${irr.toFixed(1)}% / ${lcoe.toFixed(2)} грн</span></div>
-        </div>
-      </div>
-      
-      <div class="charts-row">
-        <div class="chart-box">
-          ${chartMonthlyImg ? `<img src="${chartMonthlyImg}" class="chart-img" style="width:100%;" />` : '<div style="font-size:8px;">Немає даних</div>'}
-          <div class="chart-caption">Місячний баланс електроенергії</div>
-        </div>
-        <div class="chart-box">
-          ${chartCashflowImg ? `<img src="${chartCashflowImg}" class="chart-img" style="width:100%;" />` : '<div style="font-size:8px;">Немає даних</div>'}
-          <div class="chart-caption">Грошовий потік за 25 років</div>
-        </div>
-      </div>
-      
+      <div class="grid"><div style="flex:1"><div class="info-row"><span>Потужність:</span><span>${R.power.toFixed(1)} кВт</span></div><div class="info-row"><span>Генерація:</span><span>${Math.round(R.annualGen).toLocaleString()} кВт·год</span></div><div class="info-row"><span>Покриття:</span><span>${R.coverage.toFixed(1)}%</span></div><div class="info-row"><span>CAPEX:</span><span>${Math.round(R.capex/1000).toLocaleString()} тис.грн</span></div></div><div style="flex:1"><div class="info-row"><span>Економія/рік:</span><span>${Math.round(R.saving1).toLocaleString()} грн</span></div><div class="info-row"><span>Окупність:</span><span>${R.payback.toFixed(1)} р.</span></div><div class="info-row"><span>NPV:</span><span>${Math.round(R.npv/1000).toLocaleString()} тис.грн</span></div><div class="info-row"><span>IRR/LCOE:</span><span>${R.irr.toFixed(1)}% / ${R.lcoe.toFixed(2)} грн</span></div></div></div>
+      <div class="grid"><div class="chart-box">${monthlyImg ? `<img src="${monthlyImg}" style="width:100%"/>` : ''}<div style="font-size:7px;margin-top:4px">Місячний баланс</div></div><div class="chart-box">${cashflowImg ? `<img src="${cashflowImg}" style="width:100%"/>` : ''}<div style="font-size:7px;margin-top:4px">Грошовий потік</div></div></div>
       <div class="section-title">💰 ФІНАНСОВИЙ АНАЛІЗ</div>
-      
-      <div class="benefit">
-        <span style="font-size:9px;">Чиста вигода за 25 років:</span>
-        <span class="benefit-value">+ ${Math.round(netBenefit/1000).toLocaleString()} тис. грн</span>
-      </div>
-      
-      <div class="info-row"><span class="info-label">Витрати без СЕС:</span><span class="info-value">${Math.round(costWithout/1000).toLocaleString()} тис. грн</span></div>
-      <div class="info-row"><span class="info-label">Витрати з СЕС:</span><span class="info-value">${Math.round(costWith/1000).toLocaleString()} тис. грн</span></div>
-      <div class="info-row"><span class="info-label">Тариф / PSH:</span><span class="info-value">${tariff.toFixed(2)} грн / ${psh.toFixed(1)} год</span></div>
-      <div class="info-row"><span class="info-label">Розміщення:</span><span class="info-value">${escapeHtml(placementName)}</span></div>
-      
-      <div class="recommend">
-        ${payback < 5 ? '✅ Відмінно! Проєкт рекомендується до реалізації.' : 
-          payback < 8 ? '📊 Добре. Рекомендується розгляд інвестиції.' : 
-          '⚠️ Строк окупності >8 років. Рекомендується оптимізація.'}
-      </div>
-      
-      <div class="contacts">
-        <span class="title">📞 КОНТАКТИ:</span>
-        <span class="row">📱 +38 044 123 45 67</span>
-        <span class="row">✉️ info@ses-calculator.com.ua</span>
-        <span class="row">🌐 www.ses-calculator.com.ua</span>
-        ${clientPhone ? `<span class="row">📞 ${escapeHtml(clientPhone)}</span>` : ''}
-        ${clientEmail ? `<span class="row">📧 ${escapeHtml(clientEmail)}</span>` : ''}
-      </div>
-      
-      <div class="footer">
-        Дисклеймер: Розрахунок попередній, похибка ±15-25%. Точні параметри після обстеження.
-      </div>
+      <div class="benefit"><span>Чиста вигода за 25 років: </span><strong>+ ${Math.round((() => { let cw=0; for(let y=1;y<=25;y++) cw += R.annual * R.tariff * Math.pow(1+parseFloat(document.getElementById('tariffGrowth').value||0.1), y-1); return (cw - (R.capex + R.capex*0.013*25))/1000; })()).toLocaleString()} тис. грн</strong></div>
+      <div class="info-row"><span>Витрати без СЕС:</span><span>${Math.round((() => { let cw=0; for(let y=1;y<=25;y++) cw += R.annual * R.tariff * Math.pow(1+parseFloat(document.getElementById('tariffGrowth').value||0.1), y-1); return cw/1000; })()).toLocaleString()} тис.грн</span></div>
+      <div class="info-row"><span>Витрати з СЕС:</span><span>${Math.round((R.capex + R.capex*0.013*25)/1000).toLocaleString()} тис.грн</span></div>
+      <div class="contacts"><strong>📞 КОНТАКТИ:</strong> 📱 +38 044 123 45 67 | ✉ info@ses-calculator.com.ua | 🌐 www.ses-calculator.com.ua</div>
+      <div class="footer">Дисклеймер: Розрахунок попередній, похибка ±15-25%</div>
     `;
     
-    document.body.appendChild(pdfContainer);
-    
-    loaderText.textContent = 'Рендеринг PDF...';
-    await new Promise(r => setTimeout(r, 200));
-    
-    const canvas = await html2canvas(pdfContainer, {
-      scale: 1.6,
-      backgroundColor: '#ffffff',
-      logging: false,
-      useCORS: true
-    });
-    
-    document.body.removeChild(pdfContainer);
-    
-    loaderText.textContent = 'Збереження файлу...';
+    document.body.appendChild(container);
+    const canvas = await html2canvas(container, { scale: 1.6, backgroundColor: '#fff' });
+    document.body.removeChild(container);
     
     const imgData = canvas.toDataURL('image/jpeg', 0.85);
     const { jsPDF } = window.jspdf;
-    
-    const pageWidth = 210;
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
-    
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const imgHeight = (canvas.height * 210) / canvas.width;
+    doc.addImage(imgData, 'JPEG', 0, 0, 210, Math.min(imgHeight, 297), undefined, 'FAST');
+    doc.save(`SES_Report_${objName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
     
-    // Якщо вміст поміщається на одну сторінку
-    if (imgHeight <= 297) {
-      doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeight, undefined, 'FAST');
-    } else {
-      // Якщо трохи більше - трохи зменшуємо масштаб
-      const scale = 290 / imgHeight;
-      const scaledHeight = imgHeight * scale;
-      doc.addImage(imgData, 'JPEG', 0, 0, pageWidth * scale, scaledHeight, undefined, 'FAST');
-    }
-    
-    const filename = `SES_Report_${objName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`;
-    doc.save(filename);
-    
-  } catch (error) {
-    console.error('PDF Error:', error);
-    alert('Помилка: ' + error.message);
-  } finally {
-    loader.style.display = 'none';
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-  }
+  } catch (err) { console.error(err); alert('Помилка: ' + err.message); }
+  finally { loader.remove(); btn.innerHTML = originalText; btn.disabled = false; }
 }
 
-  function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  });
-}
-  
-function saveData() { try { localStorage.setItem('sesCalcData', JSON.stringify({ annualConsumption: document.getElementById('annualConsumption').value, tariff: document.getElementById('tariff').value, region: document.getElementById('region').value, placement: state.placement, availArea: document.getElementById('availArea').value, panelWatt: document.getElementById('panelWatt').value, orient: state.orient, orientCoeff: state.orientCoeff, tariffGrowth: document.getElementById('tariffGrowth').value, objName: document.getElementById('objName').value, objCity: document.getElementById('objCity').value, dgOn: state.dgOn, bessOn: state.bessOn, bessKwh: document.getElementById('bessKwh').value, dgPower: document.getElementById('dgPower').value, cableLen: document.getElementById('cableLen').value })); } catch(e) {} }
-function restoreData() { try { const raw = localStorage.getItem('sesCalcData'); if (!raw) return; const d = JSON.parse(raw); if (d.annualConsumption) document.getElementById('annualConsumption').value = d.annualConsumption; if (d.tariff) document.getElementById('tariff').value = d.tariff; if (d.availArea) document.getElementById('availArea').value = d.availArea; if (d.panelWatt) document.getElementById('panelWatt').value = d.panelWatt; if (d.tariffGrowth) document.getElementById('tariffGrowth').value = d.tariffGrowth; if (d.objName) document.getElementById('objName').value = d.objName; if (d.objCity) document.getElementById('objCity').value = d.objCity; if (d.bessKwh) document.getElementById('bessKwh').value = d.bessKwh; if (d.dgPower) document.getElementById('dgPower').value = d.dgPower; if (d.cableLen) document.getElementById('cableLen').value = d.cableLen; if (d.region) { document.getElementById('region').value = d.region; regionChange(); } if (d.placement) { const cards = document.querySelectorAll('.placement-card'); const keys = ['flatRoof','slopedRoof','ground','facade','carport']; const idx = keys.indexOf(d.placement); if (idx >= 0) setPlacement(d.placement, cards[idx]); } if (d.orient && d.orientCoeff) { state.orient = d.orient; state.orientCoeff = d.orientCoeff; document.querySelectorAll('.orient-btn').forEach(b => { const match = b.textContent.includes(d.orient) || (d.orient==='S' && b.textContent.includes('Південь') && !b.textContent.includes('Захід') && !b.textContent.includes('Схід')); b.classList.toggle('active', match); }); } if (d.dgOn) toggleDG(); if (d.bessOn) toggleBESS(); } catch(e) {} closeModal(); debouncedRecalc(); }
+// ========== ЗБЕРЕЖЕННЯ ТА ВІДНОВЛЕННЯ ==========
+function saveData() { try { localStorage.setItem('sesCalcData', JSON.stringify({ annualConsumption: document.getElementById('annualConsumption').value, tariff: document.getElementById('tariff').value, region: document.getElementById('region').value, placement: state.placement, availArea: document.getElementById('availArea').value, panelWatt: document.getElementById('panelWatt').value, orient: state.orient, tariffGrowth: document.getElementById('tariffGrowth').value, objName: document.getElementById('objName').value, objCity: document.getElementById('objCity').value, dgOn: state.dgOn, bessOn: state.bessOn, bessKwh: document.getElementById('bessKwh').value, dgPower: document.getElementById('dgPower').value, cableLen: document.getElementById('cableLen').value })); } catch(e) {} }
+function restoreData() { try { const d = JSON.parse(localStorage.getItem('sesCalcData')); if (!d) return; document.getElementById('annualConsumption').value = d.annualConsumption || 500000; document.getElementById('tariff').value = d.tariff || 4.32; document.getElementById('availArea').value = d.availArea || 1000; document.getElementById('panelWatt').value = d.panelWatt || 500; document.getElementById('tariffGrowth').value = d.tariffGrowth || 0.1; document.getElementById('objName').value = d.objName || 'Мій об\'єкт'; document.getElementById('objCity').value = d.objCity || ''; if (d.region) { document.getElementById('region').value = d.region; regionChange(); } if (d.placement) { const cards = document.querySelectorAll('.placement-card'); const keys = ['flatRoof','slopedRoof','ground','facade','carport']; const idx = keys.indexOf(d.placement); if (idx >= 0) setPlacement(d.placement, cards[idx]); } if (d.dgOn) toggleDG(); if (d.bessOn) toggleBESS(); } catch(e) {} closeModal(); debouncedRecalc(); }
 function closeModal() { document.getElementById('restoreModal').style.display = 'none'; }
 function resetAll() { if (confirm('Скинути всі налаштування?')) { localStorage.removeItem('sesCalcData'); location.reload(); } }
-function shareCalc() { const url = window.location.href.split('#')[0]; navigator.clipboard.writeText(url).then(() => alert('Посилання скопійовано!')).catch(() => prompt('Скопіюйте:', url)); }
+function shareCalc() { navigator.clipboard.writeText(window.location.href.split('#')[0]).then(() => alert('Посилання скопійовано!')); }
 
 window.addEventListener('load', () => { if (localStorage.getItem('sesCalcData')) document.getElementById('restoreModal').style.display = 'flex'; else debouncedRecalc(); });
-// ========== ЖИВИЙ ПРЕВ'Ю ЗВІТУ ==========
-let previewCharts = {};
-
-function updateLivePreview() {
-  const R = state.R;
-  if (!R || !R.power) return;
-  
-  // Оновлення текстових даних
-  document.getElementById('preview-date').textContent = new Date().toLocaleDateString('uk-UA');
-  document.getElementById('preview-object-name').textContent = 'Об\'єкт: ' + (document.getElementById('objName').value || '—') + (document.getElementById('objCity').value ? ' · ' + document.getElementById('objCity').value : '');
-  document.getElementById('preview-r-obj').textContent = document.getElementById('objName').value || '—';
-  
-  const regSel = document.getElementById('region');
-  document.getElementById('preview-r-region').textContent = (regSel.options[regSel.selectedIndex]?.text || '—') + ' / PSH ' + getPSH() + ' год/день';
-  document.getElementById('preview-r-cons').textContent = fmtN(R.annual, 0) + ' кВт·год/рік · ' + fmtN(R.tariff, 2) + ' ₴/кВт·год';
-  document.getElementById('preview-r-placement').textContent = R.placementName || '—';
-  
-  if (R.power) document.getElementById('preview-power').innerHTML = fmtN(R.power, 1) + '<span class="rp-unit"> кВп</span>';
-  if (R.annualGen) document.getElementById('preview-gen').innerHTML = fmtN(R.annualGen, 0) + '<span class="rp-unit"> кВт·год/рік</span>';
-  if (R.saving1) document.getElementById('preview-saving').innerHTML = fmtC(R.saving1) + '/рік';
-  if (R.capex) document.getElementById('preview-capex').textContent = fmtC(R.capex);
-  if (R.payback) document.getElementById('preview-payback').innerHTML = isFinite(R.payback) ? R.payback.toFixed(1) + '<span class="rp-unit"> р.</span>' : '—';
-  if (R.npv) document.getElementById('preview-npv').textContent = fmtC(R.npv);
-  if (R.capex) document.getElementById('preview-f-capex').textContent = fmtC(R.capex);
-  if (R.irr) document.getElementById('preview-f-irr').textContent = (R.irr || 0).toFixed(1) + '% / ' + (R.lcoe || 0).toFixed(2) + ' ₴/кВт·год';
-  if (R.coverage) document.getElementById('preview-f-cover').textContent = (R.coverage || 0).toFixed(1) + '%';
-  
-  // Розрахунок вигоди
-  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
-  let costWithout = 0;
-  for (let y = 1; y <= 25; y++) {
-    costWithout += R.annual * R.tariff * Math.pow(1 + tariffGrowth, y - 1);
-  }
-  const costWith = R.capex + (R.capex * 0.013 * 25);
-  const netBenefit = costWithout - costWith;
-  document.getElementById('preview-f-benefit').innerHTML = '+ ' + fmtC(netBenefit);
-  
-  const leadInfo = [document.getElementById('leadName').value, document.getElementById('leadCompany').value].filter(Boolean).join(' · ');
-  document.getElementById('preview-lead-info').textContent = leadInfo ? 'Підготовлено для: ' + leadInfo : '';
-  
-  // Оновлення графіків у прев'ю
-  updatePreviewCharts(R);
-}
-
-function updatePreviewCharts(R) {
-  if (!R.annualGen) return;
-  
-  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
-  
-  // Місячний графік
-  const ctxMonthly = document.getElementById('preview-chart-monthly');
-  if (ctxMonthly) {
-    const seasonSum = CONFIG.solar.seasonality.reduce((a, b) => a + b, 0);
-    const mGen = CONFIG.solar.seasonality.map(k => Math.round(R.annualGen / 12 * k / (seasonSum / 12)));
-    const mCons = Array(12).fill(Math.round(R.annual / 12));
-    const used = mGen.map((g, i) => Math.min(g, mCons[i]));
-    const grid = mCons.map((c, i) => Math.max(0, c - mGen[i]));
-    const surplus = mGen.map((g, i) => Math.max(0, g - mCons[i]));
-    
-    if (previewCharts.monthly) previewCharts.monthly.destroy();
-    previewCharts.monthly = new Chart(ctxMonthly, {
-      type: 'bar',
-      data: {
-        labels: MONTHS,
-        datasets: [
-          { label: 'Генерація СЕС', data: used, backgroundColor: '#F59E0B', borderRadius: 4, stack: 'e' },
-          { label: 'Споживання з мережі', data: grid, backgroundColor: '#10B981', borderRadius: 4, stack: 'e' },
-          { label: 'Надлишок', data: surplus, backgroundColor: '#EF4444', borderRadius: 4, stack: 'e' }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 } } } } }
-    });
-  }
-  
-  // Грошовий потік
-  const ctxCashflow = document.getElementById('preview-chart-cashflow');
-  if (ctxCashflow) {
-    let cum = -R.capex;
-    const data = [cum];
-    const labels = ['0'];
-    for (let y = 1; y <= 25; y++) {
-      cum += (R.saving1 - (R.capex * CONFIG.finance.opex_pct)) * Math.pow(1 + tariffGrowth, y);
-      data.push(Math.round(cum));
-      labels.push('' + y);
-    }
-    
-    let paybackYear = null;
-    for (let i = 0; i < data.length - 1; i++) {
-      if (data[i] < 0 && data[i + 1] >= 0) {
-        paybackYear = i + 1;
-        break;
-      }
-    }
-    
-    if (previewCharts.cashflow) previewCharts.cashflow.destroy();
-    previewCharts.cashflow = new Chart(ctxCashflow, {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35, borderWidth: 2 }] },
-      options: {
-        responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { position: 'top', labels: { font: { size: 9 } } } }
-      },
-      plugins: [{
-        afterDatasetsDraw(chart) {
-          if (!paybackYear) return;
-          const { ctx, chartArea, scales } = chart;
-          ctx.save();
-          const x = scales.x.getPixelForValue(paybackYear);
-          ctx.beginPath();
-          ctx.moveTo(x, chartArea.top);
-          ctx.lineTo(x, chartArea.bottom);
-          ctx.strokeStyle = '#F59E0B';
-          ctx.lineWidth = 1.5;
-          ctx.setLineDash([4, 4]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = '#F59E0B';
-          ctx.font = 'bold 8px "Inter", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(`Окупність: ${paybackYear} р.`, x, chartArea.top - 3);
-          ctx.restore();
-        }
-      }]
-    });
-  }
-  
-  // Структура CAPEX
-  const ctxCapex = document.getElementById('preview-chart-capex');
-  if (ctxCapex) {
-    const cBase = parseFloat(document.getElementById('c-base').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cCable = parseFloat(document.getElementById('c-cable').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cBESS = parseFloat(document.getElementById('c-bess').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cTrans = parseFloat(document.getElementById('c-transformer').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cDesign = parseFloat(document.getElementById('c-design').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    const cCont = parseFloat(document.getElementById('c-contingency').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
-    
-    if (previewCharts.capex) previewCharts.capex.destroy();
-    previewCharts.capex = new Chart(ctxCapex, {
-      type: 'doughnut',
-      data: { labels: ['СЕС', 'Кабель', 'BESS', 'Трансформатор', 'Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cDesign + cCont], backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#94A3B8'], borderWidth: 0 }] },
-      options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 8 } } } } }
-    });
-  }
-}
-
-// Підміняємо стару функцію updateReport на нову, яка оновлює живий прев'ю
-const originalUpdateReport = updateReport;
-window.updateReport = function() {
-  if (originalUpdateReport) originalUpdateReport();
-  updateLivePreview();
-};
-  // ========== ЖИВИЙ ПРЕВ'Ю ЗВІТУ ==========
-let previewCharts = {};
-
-function updateLivePreview() {
-  const R = state.R;
-  if (!R || !R.power) {
-    console.log('Немає даних для прев\'ю');
-    return;
-  }
-  
-  // Перевіряємо наявність елементів перед оновленням
-  const elements = {
-    date: document.getElementById('preview-date'),
-    objectName: document.getElementById('preview-object-name'),
-    rObj: document.getElementById('preview-r-obj'),
-    rRegion: document.getElementById('preview-r-region'),
-    rCons: document.getElementById('preview-r-cons'),
-    rPlacement: document.getElementById('preview-r-placement'),
-    power: document.getElementById('preview-power'),
-    gen: document.getElementById('preview-gen'),
-    saving: document.getElementById('preview-saving'),
-    capex: document.getElementById('preview-capex'),
-    payback: document.getElementById('preview-payback'),
-    npv: document.getElementById('preview-npv'),
-    fCapex: document.getElementById('preview-f-capex'),
-    fIrr: document.getElementById('preview-f-irr'),
-    fCover: document.getElementById('preview-f-cover'),
-    fBenefit: document.getElementById('preview-f-benefit'),
-    leadInfo: document.getElementById('preview-lead-info')
-  };
-  
-  // Оновлення текстових даних (тільки якщо елемент існує)
-  if (elements.date) elements.date.textContent = new Date().toLocaleDateString('uk-UA');
-  if (elements.objectName) elements.objectName.textContent = 'Об\'єкт: ' + (document.getElementById('objName').value || '—') + (document.getElementById('objCity').value ? ' · ' + document.getElementById('objCity').value : '');
-  if (elements.rObj) elements.rObj.textContent = document.getElementById('objName').value || '—';
-  
-  const regSel = document.getElementById('region');
-  if (elements.rRegion && regSel) {
-    elements.rRegion.textContent = (regSel.options[regSel.selectedIndex]?.text || '—') + ' / PSH ' + getPSH() + ' год/день';
-  }
-  if (elements.rCons) elements.rCons.textContent = fmtN(R.annual, 0) + ' кВт·год/рік · ' + fmtN(R.tariff, 2) + ' ₴/кВт·год';
-  if (elements.rPlacement) elements.rPlacement.textContent = R.placementName || '—';
-  
-  if (elements.power && R.power) elements.power.innerHTML = fmtN(R.power, 1) + '<span class="rp-unit"> кВп</span>';
-  if (elements.gen && R.annualGen) elements.gen.innerHTML = fmtN(R.annualGen, 0) + '<span class="rp-unit"> кВт·год/рік</span>';
-  if (elements.saving && R.saving1) elements.saving.innerHTML = fmtC(R.saving1) + '/рік';
-  if (elements.capex && R.capex) elements.capex.textContent = fmtC(R.capex);
-  if (elements.payback && R.payback) elements.payback.innerHTML = isFinite(R.payback) ? R.payback.toFixed(1) + '<span class="rp-unit"> р.</span>' : '—';
-  if (elements.npv && R.npv) elements.npv.textContent = fmtC(R.npv);
-  if (elements.fCapex && R.capex) elements.fCapex.textContent = fmtC(R.capex);
-  if (elements.fIrr && R.irr) elements.fIrr.textContent = (R.irr || 0).toFixed(1) + '% / ' + (R.lcoe || 0).toFixed(2) + ' ₴/кВт·год';
-  if (elements.fCover && R.coverage) elements.fCover.textContent = (R.coverage || 0).toFixed(1) + '%';
-  
-  // Розрахунок вигоди
-  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
-  let costWithout = 0;
-  for (let y = 1; y <= 25; y++) {
-    costWithout += R.annual * R.tariff * Math.pow(1 + tariffGrowth, y - 1);
-  }
-  const costWith = R.capex + (R.capex * 0.013 * 25);
-  const netBenefit = costWithout - costWith;
-  if (elements.fBenefit) elements.fBenefit.innerHTML = '+ ' + fmtC(netBenefit);
-  
-  const leadInfo = [document.getElementById('leadName').value, document.getElementById('leadCompany').value].filter(Boolean).join(' · ');
-  if (elements.leadInfo) elements.leadInfo.textContent = leadInfo ? 'Підготовлено для: ' + leadInfo : '';
-  
-  // Оновлення графіків у прев'ю
-  updatePreviewCharts(R);
-}
-
-function updatePreviewCharts(R) {
-  if (!R || !R.annualGen) return;
-  
-  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
-  
-  // Місячний графік
-  const ctxMonthly = document.getElementById('preview-chart-monthly');
-  if (ctxMonthly) {
-    const seasonSum = CONFIG.solar.seasonality.reduce((a, b) => a + b, 0);
-    const mGen = CONFIG.solar.seasonality.map(k => Math.round(R.annualGen / 12 * k / (seasonSum / 12)));
-    const mCons = Array(12).fill(Math.round(R.annual / 12));
-    const used = mGen.map((g, i) => Math.min(g, mCons[i]));
-    const grid = mCons.map((c, i) => Math.max(0, c - mGen[i]));
-    const surplus = mGen.map((g, i) => Math.max(0, g - mCons[i]));
-    
-    if (previewCharts.monthly) previewCharts.monthly.destroy();
-    previewCharts.monthly = new Chart(ctxMonthly, {
-      type: 'bar',
-      data: {
-        labels: MONTHS,
-        datasets: [
-          { label: 'Генерація СЕС', data: used, backgroundColor: '#F59E0B', borderRadius: 4, stack: 'e' },
-          { label: 'Споживання з мережі', data: grid, backgroundColor: '#10B981', borderRadius: 4, stack: 'e' },
-          { label: 'Надлишок', data: surplus, backgroundColor: '#EF4444', borderRadius: 4, stack: 'e' }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 } } } } }
-    });
-  }
-  
-  // Грошовий потік
-  const ctxCashflow = document.getElementById('preview-chart-cashflow');
-  if (ctxCashflow) {
-    let cum = -R.capex;
-    const data = [cum];
-    const labels = ['0'];
-    for (let y = 1; y <= 25; y++) {
-      cum += (R.saving1 - (R.capex * CONFIG.finance.opex_pct)) * Math.pow(1 + tariffGrowth, y);
-      data.push(Math.round(cum));
-      labels.push('' + y);
-    }
-    
-    let paybackYear = null;
-    for (let i = 0; i < data.length - 1; i++) {
-      if (data[i] < 0 && data[i + 1] >= 0) {
-        paybackYear = i + 1;
-        break;
-      }
-    }
-    
-    if (previewCharts.cashflow) previewCharts.cashflow.destroy();
-    previewCharts.cashflow = new Chart(ctxCashflow, {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35, borderWidth: 2 }] },
-      options: {
-        responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { position: 'top', labels: { font: { size: 9 } } } }
-      },
-      plugins: [{
-        afterDatasetsDraw(chart) {
-          if (!paybackYear) return;
-          const { ctx, chartArea, scales } = chart;
-          ctx.save();
-          const x = scales.x.getPixelForValue(paybackYear);
-          ctx.beginPath();
-          ctx.moveTo(x, chartArea.top);
-          ctx.lineTo(x, chartArea.bottom);
-          ctx.strokeStyle = '#F59E0B';
-          ctx.lineWidth = 1.5;
-          ctx.setLineDash([4, 4]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = '#F59E0B';
-          ctx.font = 'bold 8px "Inter", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(`Окупність: ${paybackYear} р.`, x, chartArea.top - 3);
-          ctx.restore();
-        }
-      }]
-    });
-  }
-  
-  // Структура CAPEX
-  const ctxCapex = document.getElementById('preview-chart-capex');
-  if (ctxCapex) {
-    const cBaseEl = document.getElementById('c-base');
-    const cCableEl = document.getElementById('c-cable');
-    const cBESSEl = document.getElementById('c-bess');
-    const cTransEl = document.getElementById('c-transformer');
-    const cDesignEl = document.getElementById('c-design');
-    const cContEl = document.getElementById('c-contingency');
-    
-    const cBase = cBaseEl ? parseFloat(cBaseEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
-    const cCable = cCableEl ? parseFloat(cCableEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
-    const cBESS = cBESSEl ? parseFloat(cBESSEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
-    const cTrans = cTransEl ? parseFloat(cTransEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
-    const cDesign = cDesignEl ? parseFloat(cDesignEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
-    const cCont = cContEl ? parseFloat(cContEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
-    
-    if (previewCharts.capex) previewCharts.capex.destroy();
-    previewCharts.capex = new Chart(ctxCapex, {
-      type: 'doughnut',
-      data: { labels: ['СЕС', 'Кабель', 'BESS', 'Трансформатор', 'Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cDesign + cCont], backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#94A3B8'], borderWidth: 0 }] },
-      options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 8 } } } } }
-    });
-  }
-}
-
-// Оновлюємо функцію recalcAll, щоб викликати updateLivePreview
-// Знайдіть функцію recalcAll і додайте в неї в кінці виклик updateLivePreview()
-// Але щоб не дублювати код, ось патч:
-const originalRecalcAll = recalcAll;
-window.recalcAll = function() {
-  originalRecalcAll();
-  setTimeout(() => updateLivePreview(), 50);
-};
-
-// Видаляємо дубль функції escapeHtml, залишаємо одну
-if (typeof window.escapeHtml === 'undefined') {
-  window.escapeHtml = function(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-      if (m === '&') return '&amp;';
-      if (m === '<') return '&lt;';
-      if (m === '>') return '&gt;';
-      return m;
-    });
-  }
-}
-
-// Ініціалізація прев'ю після завантаження
-setTimeout(() => {
-  if (state.R && state.R.power) {
-    updateLivePreview();
-  }
-}, 500);
 </script>
 </body>
 </html>
