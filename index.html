@@ -1478,16 +1478,6 @@ async function generatePDF() {
   }
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  });
-}
-
   function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>]/g, function(m) {
@@ -1656,6 +1646,212 @@ window.updateReport = function() {
   if (originalUpdateReport) originalUpdateReport();
   updateLivePreview();
 };
+  // ========== ЖИВИЙ ПРЕВ'Ю ЗВІТУ ==========
+let previewCharts = {};
+
+function updateLivePreview() {
+  const R = state.R;
+  if (!R || !R.power) {
+    console.log('Немає даних для прев\'ю');
+    return;
+  }
+  
+  // Перевіряємо наявність елементів перед оновленням
+  const elements = {
+    date: document.getElementById('preview-date'),
+    objectName: document.getElementById('preview-object-name'),
+    rObj: document.getElementById('preview-r-obj'),
+    rRegion: document.getElementById('preview-r-region'),
+    rCons: document.getElementById('preview-r-cons'),
+    rPlacement: document.getElementById('preview-r-placement'),
+    power: document.getElementById('preview-power'),
+    gen: document.getElementById('preview-gen'),
+    saving: document.getElementById('preview-saving'),
+    capex: document.getElementById('preview-capex'),
+    payback: document.getElementById('preview-payback'),
+    npv: document.getElementById('preview-npv'),
+    fCapex: document.getElementById('preview-f-capex'),
+    fIrr: document.getElementById('preview-f-irr'),
+    fCover: document.getElementById('preview-f-cover'),
+    fBenefit: document.getElementById('preview-f-benefit'),
+    leadInfo: document.getElementById('preview-lead-info')
+  };
+  
+  // Оновлення текстових даних (тільки якщо елемент існує)
+  if (elements.date) elements.date.textContent = new Date().toLocaleDateString('uk-UA');
+  if (elements.objectName) elements.objectName.textContent = 'Об\'єкт: ' + (document.getElementById('objName').value || '—') + (document.getElementById('objCity').value ? ' · ' + document.getElementById('objCity').value : '');
+  if (elements.rObj) elements.rObj.textContent = document.getElementById('objName').value || '—';
+  
+  const regSel = document.getElementById('region');
+  if (elements.rRegion && regSel) {
+    elements.rRegion.textContent = (regSel.options[regSel.selectedIndex]?.text || '—') + ' / PSH ' + getPSH() + ' год/день';
+  }
+  if (elements.rCons) elements.rCons.textContent = fmtN(R.annual, 0) + ' кВт·год/рік · ' + fmtN(R.tariff, 2) + ' ₴/кВт·год';
+  if (elements.rPlacement) elements.rPlacement.textContent = R.placementName || '—';
+  
+  if (elements.power && R.power) elements.power.innerHTML = fmtN(R.power, 1) + '<span class="rp-unit"> кВп</span>';
+  if (elements.gen && R.annualGen) elements.gen.innerHTML = fmtN(R.annualGen, 0) + '<span class="rp-unit"> кВт·год/рік</span>';
+  if (elements.saving && R.saving1) elements.saving.innerHTML = fmtC(R.saving1) + '/рік';
+  if (elements.capex && R.capex) elements.capex.textContent = fmtC(R.capex);
+  if (elements.payback && R.payback) elements.payback.innerHTML = isFinite(R.payback) ? R.payback.toFixed(1) + '<span class="rp-unit"> р.</span>' : '—';
+  if (elements.npv && R.npv) elements.npv.textContent = fmtC(R.npv);
+  if (elements.fCapex && R.capex) elements.fCapex.textContent = fmtC(R.capex);
+  if (elements.fIrr && R.irr) elements.fIrr.textContent = (R.irr || 0).toFixed(1) + '% / ' + (R.lcoe || 0).toFixed(2) + ' ₴/кВт·год';
+  if (elements.fCover && R.coverage) elements.fCover.textContent = (R.coverage || 0).toFixed(1) + '%';
+  
+  // Розрахунок вигоди
+  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
+  let costWithout = 0;
+  for (let y = 1; y <= 25; y++) {
+    costWithout += R.annual * R.tariff * Math.pow(1 + tariffGrowth, y - 1);
+  }
+  const costWith = R.capex + (R.capex * 0.013 * 25);
+  const netBenefit = costWithout - costWith;
+  if (elements.fBenefit) elements.fBenefit.innerHTML = '+ ' + fmtC(netBenefit);
+  
+  const leadInfo = [document.getElementById('leadName').value, document.getElementById('leadCompany').value].filter(Boolean).join(' · ');
+  if (elements.leadInfo) elements.leadInfo.textContent = leadInfo ? 'Підготовлено для: ' + leadInfo : '';
+  
+  // Оновлення графіків у прев'ю
+  updatePreviewCharts(R);
+}
+
+function updatePreviewCharts(R) {
+  if (!R || !R.annualGen) return;
+  
+  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
+  
+  // Місячний графік
+  const ctxMonthly = document.getElementById('preview-chart-monthly');
+  if (ctxMonthly) {
+    const seasonSum = CONFIG.solar.seasonality.reduce((a, b) => a + b, 0);
+    const mGen = CONFIG.solar.seasonality.map(k => Math.round(R.annualGen / 12 * k / (seasonSum / 12)));
+    const mCons = Array(12).fill(Math.round(R.annual / 12));
+    const used = mGen.map((g, i) => Math.min(g, mCons[i]));
+    const grid = mCons.map((c, i) => Math.max(0, c - mGen[i]));
+    const surplus = mGen.map((g, i) => Math.max(0, g - mCons[i]));
+    
+    if (previewCharts.monthly) previewCharts.monthly.destroy();
+    previewCharts.monthly = new Chart(ctxMonthly, {
+      type: 'bar',
+      data: {
+        labels: MONTHS,
+        datasets: [
+          { label: 'Генерація СЕС', data: used, backgroundColor: '#F59E0B', borderRadius: 4, stack: 'e' },
+          { label: 'Споживання з мережі', data: grid, backgroundColor: '#10B981', borderRadius: 4, stack: 'e' },
+          { label: 'Надлишок', data: surplus, backgroundColor: '#EF4444', borderRadius: 4, stack: 'e' }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 } } } } }
+    });
+  }
+  
+  // Грошовий потік
+  const ctxCashflow = document.getElementById('preview-chart-cashflow');
+  if (ctxCashflow) {
+    let cum = -R.capex;
+    const data = [cum];
+    const labels = ['0'];
+    for (let y = 1; y <= 25; y++) {
+      cum += (R.saving1 - (R.capex * CONFIG.finance.opex_pct)) * Math.pow(1 + tariffGrowth, y);
+      data.push(Math.round(cum));
+      labels.push('' + y);
+    }
+    
+    let paybackYear = null;
+    for (let i = 0; i < data.length - 1; i++) {
+      if (data[i] < 0 && data[i + 1] >= 0) {
+        paybackYear = i + 1;
+        break;
+      }
+    }
+    
+    if (previewCharts.cashflow) previewCharts.cashflow.destroy();
+    previewCharts.cashflow = new Chart(ctxCashflow, {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35, borderWidth: 2 }] },
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        plugins: { legend: { position: 'top', labels: { font: { size: 9 } } } }
+      },
+      plugins: [{
+        afterDatasetsDraw(chart) {
+          if (!paybackYear) return;
+          const { ctx, chartArea, scales } = chart;
+          ctx.save();
+          const x = scales.x.getPixelForValue(paybackYear);
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#F59E0B';
+          ctx.font = 'bold 8px "Inter", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(`Окупність: ${paybackYear} р.`, x, chartArea.top - 3);
+          ctx.restore();
+        }
+      }]
+    });
+  }
+  
+  // Структура CAPEX
+  const ctxCapex = document.getElementById('preview-chart-capex');
+  if (ctxCapex) {
+    const cBaseEl = document.getElementById('c-base');
+    const cCableEl = document.getElementById('c-cable');
+    const cBESSEl = document.getElementById('c-bess');
+    const cTransEl = document.getElementById('c-transformer');
+    const cDesignEl = document.getElementById('c-design');
+    const cContEl = document.getElementById('c-contingency');
+    
+    const cBase = cBaseEl ? parseFloat(cBaseEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
+    const cCable = cCableEl ? parseFloat(cCableEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
+    const cBESS = cBESSEl ? parseFloat(cBESSEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
+    const cTrans = cTransEl ? parseFloat(cTransEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
+    const cDesign = cDesignEl ? parseFloat(cDesignEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
+    const cCont = cContEl ? parseFloat(cContEl.innerHTML.replace(/[^0-9.-]/g, '')) || 0 : 0;
+    
+    if (previewCharts.capex) previewCharts.capex.destroy();
+    previewCharts.capex = new Chart(ctxCapex, {
+      type: 'doughnut',
+      data: { labels: ['СЕС', 'Кабель', 'BESS', 'Трансформатор', 'Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cDesign + cCont], backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#94A3B8'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 8 } } } } }
+    });
+  }
+}
+
+// Оновлюємо функцію recalcAll, щоб викликати updateLivePreview
+// Знайдіть функцію recalcAll і додайте в неї в кінці виклик updateLivePreview()
+// Але щоб не дублювати код, ось патч:
+const originalRecalcAll = recalcAll;
+window.recalcAll = function() {
+  originalRecalcAll();
+  setTimeout(() => updateLivePreview(), 50);
+};
+
+// Видаляємо дубль функції escapeHtml, залишаємо одну
+if (typeof window.escapeHtml === 'undefined') {
+  window.escapeHtml = function(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+}
+
+// Ініціалізація прев'ю після завантаження
+setTimeout(() => {
+  if (state.R && state.R.power) {
+    updateLivePreview();
+  }
+}, 500);
 </script>
 </body>
 </html>
