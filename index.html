@@ -468,7 +468,7 @@ select.inp { cursor: pointer; }
         <tr><td data-i="ct-design" class="field-table-design">Проєктування та ТУ (4%)</td><td class="num" id="c-design">—</td></tr>
         <tr><td data-i="ct-reserve" class="field-table-reserve">Резерв непередбачених (10%)</td><td class="num" id="c-contingency">—</td></tr>
         <tr style="font-weight:700;"><td data-i="ct-total" class="field-table-total">РАЗОМ CAPEX</td><td class="num sun" id="c-total">—</td></tr>
-      </tbody><table>
+      </tbody></table>
     </div>
     
     <div class="card">
@@ -657,6 +657,7 @@ const translations = {
     'field-panel-power': 'Потужність однієї панелі', 'field-orientation': 'Орієнтація панелей', 'field-tilt': 'Кут нахилу панелей',
     'field-results-title': 'Результати розрахунку', 'field-installed-power': 'Встановлена потужність', 'field-panels-count': 'Кількість панелей',
     'field-effective-area': 'Ефективна площа', 'field-specific-area': 'Питома площа', 'field-info-text': 'Потужність СЕС автоматично використовується на вкладках «Генерація», «Фінанси» та «Сценарії».',
+    'placement-flatRoof': 'Плоский дах', 'placement-slopedRoof': 'Похилий дах', 'placement-ground': 'Наземна', 'placement-facade': 'Фасад', 'placement-carport': 'Навіс',
     'sec3-title': 'Генерація електроенергії', 'sec3-desc': 'Розрахунок обсягу електроенергії, яку виробить ваша СЕС протягом року.',
     'field-annual-gen': 'Річна генерація', 'field-coverage': 'Покриття споживання', 'field-daily-gen': 'Добова (середня)', 'field-degrad': 'Потужність через 25 р.',
     'field-mode-title': 'Режим роботи СЕС:', 'mode-curtailment': 'Обмеження видачі', 'mode-feedin': 'Продаж у мережу',
@@ -702,6 +703,7 @@ const translations = {
     'field-panel-power': 'Single Panel Power', 'field-orientation': 'Panel Orientation', 'field-tilt': 'Panel Tilt Angle',
     'field-results-title': 'Calculation Results', 'field-installed-power': 'Installed Power', 'field-panels-count': 'Number of Panels',
     'field-effective-area': 'Effective Area', 'field-specific-area': 'Specific Area', 'field-info-text': 'SES power is automatically used in the "Generation", "Finances" and "Scenarios" tabs.',
+    'placement-flatRoof': 'Flat roof', 'placement-slopedRoof': 'Sloped roof', 'placement-ground': 'Ground', 'placement-facade': 'Facade', 'placement-carport': 'Carport',
     'sec3-title': 'Electricity Generation', 'sec3-desc': 'Calculation of the amount of electricity your SES will produce during the year.',
     'field-annual-gen': 'Annual Generation', 'field-coverage': 'Consumption Coverage', 'field-daily-gen': 'Daily (average)', 'field-degrad': 'Power after 25 years',
     'field-mode-title': 'SES Operating Mode:', 'mode-curtailment': 'Curtailment', 'mode-feedin': 'Feed-in to grid',
@@ -778,6 +780,14 @@ function setLang(lang) {
   document.querySelector('.field-effective-area').textContent = t['field-effective-area'];
   document.querySelector('.field-specific-area').textContent = t['field-specific-area'];
   document.querySelector('.field-info-text').textContent = t['field-info-text'];
+  
+  // Переклад назв типів розміщення
+  document.querySelectorAll('.placement-card').forEach(card => {
+    const key = card.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
+    if (key && t[`placement-${key}`]) {
+      card.querySelector('.placement-name').textContent = t[`placement-${key}`];
+    }
+  });
   
   document.querySelector('#sec2 .sec-title .sec-title-text').textContent = t['sec3-title'];
   document.querySelector('#sec2 .sec-desc').textContent = t['sec3-desc'];
@@ -1137,7 +1147,7 @@ function recalcAll() {
     [currentLang === 'uk' ? 'Наявність ДГ' : 'DG available', [currentLang === 'uk' ? 'Ні' : 'No', currentLang === 'uk' ? 'Ні' : 'No', currentLang === 'uk' ? 'Ні' : 'No', currentLang === 'uk' ? 'Так' : 'Yes', currentLang === 'uk' ? 'Так' : 'Yes']]
   ];
   const compareBody = document.getElementById('scenarioCompareBody');
-  if (compareBody) compareBody.innerHTML = rows.map(([lbl, vals]) => `<tr><td class="row-label">${lbl}</td>${vals.map(v => `<td>${v}</td>`).join('')}</td>`).join('');
+  if (compareBody) compareBody.innerHTML = rows.map(([lbl, vals]) => `<tr><td class="row-label">${lbl}</td>${vals.map(v => `<td>${v}</td>`).join('')}</tr>`).join('');
   
   state.R = { power, annualGen, saving1, capex, payback, npv, lcoe, irr: irrVal, coverage, annual, tariff, psh, placementName: pl.name, orient: state.orient };
   
@@ -1179,11 +1189,83 @@ function updateChartCashflow(capex, cf1, growth) {
   const data = [cum];
   const labels = ['0'];
   for (let y = 1; y <= 25; y++) { cum += cf1 * Math.pow(1 + growth, y); data.push(Math.round(cum)); labels.push('' + y); }
+  
+  // Знаходимо рік окупності
+  let paybackYear = null;
+  for (let i = 0; i < data.length - 1; i++) {
+    if (data[i] < 0 && data[i + 1] >= 0) {
+      paybackYear = i + 1;
+      break;
+    }
+  }
+  
+  // Розділяємо дані на дві частини: до окупності (червоний) та після (зелений)
+  const beforePayback = data.map((v, i) => (paybackYear !== null && i <= paybackYear) ? v : null);
+  const afterPayback = data.map((v, i) => (paybackYear !== null && i >= paybackYear) ? v : v < 0 ? null : v);
+  
   if (charts.cashflow) charts.cashflow.destroy();
   charts.cashflow = new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets: [{ label: currentLang === 'uk' ? 'Накопичений потік' : 'Accumulated Flow', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+    data: { 
+      labels, 
+      datasets: [
+        { 
+          label: currentLang === 'uk' ? 'До окупності (збитки)' : 'Before payback (losses)', 
+          data: beforePayback, 
+          borderColor: '#EF4444', 
+          backgroundColor: 'rgba(239,68,68,0.1)', 
+          fill: true, 
+          tension: 0.35, 
+          borderWidth: 2.5,
+          pointRadius: 0,
+          spanGaps: false
+        },
+        { 
+          label: currentLang === 'uk' ? 'Після окупності (прибуток)' : 'After payback (profit)', 
+          data: afterPayback, 
+          borderColor: '#10B981', 
+          backgroundColor: 'rgba(16,185,129,0.15)', 
+          fill: true, 
+          tension: 0.35, 
+          borderWidth: 2.5,
+          pointRadius: 0,
+          spanGaps: false
+        }
+      ] 
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { 
+        legend: { position: 'top', labels: { font: { size: 11 } } },
+        tooltip: { callbacks: { label: (ctx) => { let val = ctx.raw; if (val === null) return null; return `${ctx.dataset.label}: ${val.toLocaleString('uk-UA')} ${currentLang === 'uk' ? '₴' : 'UAH'}`; } } }
+      },
+      scales: {
+        x: { title: { display: true, text: currentLang === 'uk' ? 'Рік' : 'Year', font: { size: 10 } } },
+        y: { title: { display: true, text: currentLang === 'uk' ? 'Накопичений грошовий потік, ₴' : 'Accumulated Cash Flow, UAH', font: { size: 10 } }, ticks: { callback: v => (v/1000).toFixed(0) + 'k' } }
+      }
+    },
+    plugins: [{
+      afterDatasetsDraw(chart) {
+        if (!paybackYear) return;
+        const { ctx, chartArea, scales } = chart;
+        ctx.save();
+        const x = scales.x.getPixelForValue(paybackYear);
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.strokeStyle = '#F59E0B';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#F59E0B';
+        ctx.font = 'bold 9px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${currentLang === 'uk' ? '💰 Окупність:' : '💰 Payback:'} ${paybackYear} ${currentLang === 'uk' ? 'р.' : 'years'}`, x, chartArea.top - 5);
+        ctx.restore();
+      }
+    }]
   });
 }
 
