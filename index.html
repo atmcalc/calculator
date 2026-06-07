@@ -685,7 +685,11 @@ const translations = {
     'pdf-annual-savings': 'Економія/рік', 'pdf-payback': 'Окупність', 'pdf-npv': 'NPV', 'pdf-irr-lcoe': 'IRR/LCOE',
     'pdf-cost-without': 'Витрати без СЕС', 'pdf-cost-with': 'Витрати з СЕС', 'pdf-net-benefit': 'Чиста вигода',
     'pdf-contacts': 'КОНТАКТИ', 'pdf-disclaimer': 'Дисклеймер: Розрахунок попередній, похибка ±15-25%',
-    'unit-kw': 'кВт', 'unit-kwh': 'кВт·год', 'unit-thousand': 'тис.грн', 'unit-grn': 'грн'
+    'unit-kw': 'кВт', 'unit-kwh': 'кВт·год', 'unit-thousand': 'тис.грн', 'unit-grn': 'грн',
+    'card-general-data': 'Загальні дані',
+    'card-location': 'Місцезнаходження об\'єкта',
+    'card-consumption': 'Споживання електроенергії',
+    'card-dg': 'Дизельний генератор (опційно)'
   },
   en: {
     'brand-name': 'SES Calculator',
@@ -731,7 +735,11 @@ const translations = {
     'pdf-annual-savings': 'Annual Savings', 'pdf-payback': 'Payback', 'pdf-npv': 'NPV', 'pdf-irr-lcoe': 'IRR/LCOE',
     'pdf-cost-without': 'Cost without SES', 'pdf-cost-with': 'Cost with SES', 'pdf-net-benefit': 'Net benefit',
     'pdf-contacts': 'CONTACTS', 'pdf-disclaimer': 'Disclaimer: Preliminary calculation, error ±15-25%',
-    'unit-kw': 'kW', 'unit-kwh': 'kWh', 'unit-thousand': 'thousand', 'unit-grn': 'UAH'
+    'unit-kw': 'kW', 'unit-kwh': 'kWh', 'unit-thousand': 'thousand', 'unit-grn': 'UAH',
+    'card-general-data': 'General Information',
+    'card-location': 'Object Location',
+    'card-consumption': 'Electricity Consumption',
+    'card-dg': 'Diesel Generator (optional)'
   }
 };
 
@@ -742,6 +750,13 @@ function setLang(lang) {
   const t = translations[lang];
   document.querySelector('.brand-name').textContent = t['brand-name'];
   document.querySelectorAll('.tab-btn').forEach((btn, idx) => { if(btn.querySelector('.tab-text')) btn.querySelector('.tab-text').textContent = t[`tab-${idx}`]; });
+  
+  // Загальні картки
+  const cardTitles = document.querySelectorAll('.card .card-title');
+  if (cardTitles[0]) cardTitles[0].textContent = t['card-general-data'];
+  if (cardTitles[1]) cardTitles[1].textContent = t['card-location'];
+  if (cardTitles[2]) cardTitles[2].textContent = t['card-consumption'];
+  if (cardTitles[3]) cardTitles[3].textContent = t['card-dg'];
   
   document.querySelector('#sec0 .sec-title .sec-title-text').textContent = t['sec1-title'];
   document.querySelector('#sec0 .sec-desc').textContent = t['sec1-desc'];
@@ -764,6 +779,7 @@ function setLang(lang) {
   document.querySelector('.field-dg-fuel-label').textContent = t['field-dg-fuel-label'];
   document.querySelector('.field-dg-saving-label').textContent = t['field-dg-saving-label'];
   
+  // Секція 2
   document.querySelector('#sec1 .sec-title .sec-title-text').textContent = t['sec2-title'];
   document.querySelector('#sec1 .sec-desc').textContent = t['sec2-desc'];
   document.querySelector('.mode-text-area').textContent = t['mode-text-area'];
@@ -789,6 +805,7 @@ function setLang(lang) {
     }
   });
   
+  // Секція 3
   document.querySelector('#sec2 .sec-title .sec-title-text').textContent = t['sec3-title'];
   document.querySelector('#sec2 .sec-desc').textContent = t['sec3-desc'];
   document.querySelector('.field-annual-gen').textContent = t['field-annual-gen'];
@@ -804,6 +821,7 @@ function setLang(lang) {
   document.querySelectorAll('.legend-surplus')[0].textContent = t['legend-surplus'];
   document.querySelectorAll('.legend-feedin')[0].textContent = t['legend-feedin'];
   
+  // Секція 4
   document.querySelector('#sec3 .sec-title .sec-title-text').textContent = t['sec4-title'];
   document.querySelector('#sec3 .sec-desc').textContent = t['sec4-desc'];
   document.querySelector('.field-capex-title').textContent = t['field-capex-title'];
@@ -835,21 +853,66 @@ function setLang(lang) {
   document.querySelector('.field-compare-costs').textContent = t['field-compare-costs'];
   document.querySelector('.field-compare-price').textContent = t['field-compare-price'];
   
+  // Секція 5
   document.querySelector('#sec4 .sec-title .sec-title-text').textContent = t['sec5-title'];
   document.querySelector('#sec4 .sec-desc').textContent = t['sec5-desc'];
   document.querySelector('.field-compare-scenarios-title').textContent = t['field-compare-scenarios-title'];
   document.querySelector('.field-param').textContent = t['field-param'];
   
+  // Секція 6
   document.querySelector('#sec5 .sec-title .sec-title-text').textContent = t['sec6-title'];
   document.querySelector('#sec5 .sec-desc').textContent = t['sec6-desc'];
-  document.querySelector('.lead-title').innerHTML = t['lead-title'] + ' <span style="color:var(--c-text2);font-size:12px;font-weight:400;">(optional)</span>';
+  document.querySelector('.lead-title').innerHTML = t['lead-title'] + (lang === 'uk' ? ' <span style="color:var(--c-text2);font-size:12px;font-weight:400;">(опційно)</span>' : ' <span style="color:var(--c-text2);font-size:12px;font-weight:400;">(optional)</span>');
   document.querySelector('.lead-desc').textContent = t['lead-desc'];
   document.querySelector('.lead-name-label').textContent = t['lead-name-label'];
   document.querySelector('.lead-email-label').textContent = t['lead-email-label'];
   document.querySelector('.lead-phone-label').textContent = t['lead-phone-label'];
   document.querySelector('.lead-company-label').textContent = t['lead-company-label'];
+  
+  // Оновлення одиниць вимірювання в KPI
+  const pshValue = getPSH();
+  const eta = DEFAULT_EFFICIENCY;
+  const genPerKwp = Math.round(pshValue * 365 * eta * 0.82);
+  document.getElementById('kpi-psh').innerHTML = pshValue + ' <span class="unit">' + (lang === 'uk' ? 'год/день' : 'h/day') + '</span>';
+  document.getElementById('kpi-gen-kwp').innerHTML = genPerKwp + ' <span class="unit">' + (lang === 'uk' ? 'кВт·год/рік' : 'kWh/year') + '</span>';
+  
+  // Оновлення тексту інфо-боксу
+  const insightText = document.getElementById('txt-cost-insight');
+  if (insightText) {
+    insightText.textContent = lang === 'uk' 
+      ? 'При зростанні тарифу на 10%/рік витрати через 10 років збільшаться у 2.6 рази.'
+      : 'With a 10% annual tariff increase, costs will increase 2.6 times in 10 years.';
+  }
+  
+  // Оновлення одиниць в KPI значеннях (якщо потрібно)
+  const dailyEl = document.getElementById('kpi-daily');
+  if (dailyEl) {
+    const dailyValue = parseFloat(document.getElementById('annualConsumption').value) / 365;
+    dailyEl.innerHTML = fmtN(dailyValue, 0) + ' <span class="unit">' + (lang === 'uk' ? 'кВт·год' : 'kWh') + '</span>';
+  }
+  
+  // Перемальовуємо графіки з новою мовою
+  if (state.R && state.R.annualGen) {
+    updateChartMonthly(state.R.annualGen, state.R.annual);
+    const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
+    const saving1 = state.R?.saving1 || 0;
+    const capex = state.R?.capex || 0;
+    const opex = capex * 0.013;
+    const netCF1 = saving1 - opex;
+    updateChartCashflow(capex, netCF1, tariffGrowth);
+    
+    const cBase = parseFloat(document.getElementById('c-base')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cCable = parseFloat(document.getElementById('c-cable')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cBESS = parseFloat(document.getElementById('c-bess')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cTransformer = parseFloat(document.getElementById('c-transformer')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cDesign = parseFloat(document.getElementById('c-design')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cContingency = parseFloat(document.getElementById('c-contingency')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    updateChartCapex(cBase, cCable, cBESS, cTransformer, cDesign + cContingency);
+  }
+  
+  // Оновлюємо живий прев'ю
+  updateLivePreview();
 }
-
 // ========== ДОПОМІЖНІ ФУНКЦІЇ ==========
 function getPSH() { return parseFloat(document.getElementById('region').value) || 4.0; }
 function fmtN(n, dec=0) { return isNaN(n) || !isFinite(n) ? '—' : n.toLocaleString('uk-UA', {maximumFractionDigits: dec, minimumFractionDigits: dec}); }
