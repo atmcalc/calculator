@@ -779,6 +779,35 @@ function setLang(lang) {
   document.querySelector('.field-dg-fuel-label').textContent = t['field-dg-fuel-label'];
   document.querySelector('.field-dg-saving-label').textContent = t['field-dg-saving-label'];
   
+  // Оновлення підписів одиниць вимірювання в полях вводу
+  const unitLabels = document.querySelectorAll('.unit-label');
+  if (unitLabels[0]) unitLabels[0].textContent = lang === 'uk' ? 'кВт·год' : 'kWh';
+  if (unitLabels[1]) unitLabels[1].textContent = lang === 'uk' ? '₴/кВт' : 'UAH/kW';
+  if (unitLabels[2]) unitLabels[2].textContent = lang === 'uk' ? 'м²' : 'm²';
+  if (unitLabels[3]) unitLabels[3].textContent = lang === 'uk' ? 'кВп' : 'kWp';
+  if (unitLabels[4]) unitLabels[4].textContent = lang === 'uk' ? 'кВт' : 'kW';
+  if (unitLabels[5]) unitLabels[5].textContent = lang === 'uk' ? 'л/кВт·год' : 'L/kWh';
+  if (unitLabels[6]) unitLabels[6].textContent = lang === 'uk' ? '₴/л' : 'UAH/L';
+  if (unitLabels[7]) unitLabels[7].textContent = lang === 'uk' ? 'год' : 'h';
+  if (unitLabels[8]) unitLabels[8].textContent = lang === 'uk' ? 'м' : 'm';
+  if (unitLabels[9]) unitLabels[9].textContent = lang === 'uk' ? 'кВт·год' : 'kWh';
+  
+  // Оновлення placeholder для полів
+  const cityInput = document.getElementById('objCity');
+  if (cityInput) cityInput.placeholder = lang === 'uk' ? 'Київ' : 'Kyiv';
+  
+  const leadNameInput = document.getElementById('leadName');
+  if (leadNameInput) leadNameInput.placeholder = lang === 'uk' ? 'Іван Іваненко' : 'Ivan Ivanenko';
+  
+  const leadEmailInput = document.getElementById('leadEmail');
+  if (leadEmailInput) leadEmailInput.placeholder = lang === 'uk' ? 'email@company.com' : 'email@company.com';
+  
+  const leadPhoneInput = document.getElementById('leadPhone');
+  if (leadPhoneInput) leadPhoneInput.placeholder = lang === 'uk' ? '+38X XXX XXX XXXX' : '+38X XXX XXX XXXX';
+  
+  const leadCompanyInput = document.getElementById('leadCompany');
+  if (leadCompanyInput) leadCompanyInput.placeholder = lang === 'uk' ? 'ТОВ Водоканал' : 'Water Supply LLC';
+  
   // Секція 2
   document.querySelector('#sec1 .sec-title .sec-title-text').textContent = t['sec2-title'];
   document.querySelector('#sec1 .sec-desc').textContent = t['sec2-desc'];
@@ -889,6 +918,21 @@ function setLang(lang) {
   if (dailyEl) {
     const dailyValue = parseFloat(document.getElementById('annualConsumption').value) / 365;
     dailyEl.innerHTML = fmtN(dailyValue, 0) + ' <span class="unit">' + (lang === 'uk' ? 'кВт·год' : 'kWh') + '</span>';
+  }
+  
+  // Оновлення фінансового інсайту
+  const financeInsight = document.getElementById('finance-insight');
+  if (financeInsight && state.R && state.R.payback) {
+    const payback = state.R.payback;
+    if (lang === 'uk') {
+      if (payback < 6) financeInsight.textContent = '✅ Відмінна інвестиція! Окупність ' + payback.toFixed(1) + ' р.';
+      else if (payback < 10) financeInsight.textContent = '📊 Хороша інвестиція. Окупність ' + payback.toFixed(1) + ' р.';
+      else financeInsight.textContent = '⚠️ Строк окупності ' + payback.toFixed(1) + ' р. Розгляньте зменшення CAPEX.';
+    } else {
+      if (payback < 6) financeInsight.textContent = '✅ Excellent investment! Payback ' + payback.toFixed(1) + ' years.';
+      else if (payback < 10) financeInsight.textContent = '📊 Good investment. Payback ' + payback.toFixed(1) + ' years.';
+      else financeInsight.textContent = '⚠️ Payback period ' + payback.toFixed(1) + ' years. Consider CAPEX reduction.';
+    }
   }
   
   // Перемальовуємо графіки з новою мовою
