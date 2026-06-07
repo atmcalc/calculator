@@ -271,14 +271,9 @@ select.inp { cursor: pointer; }
   </div>
 </div>
 
-<header class="topbar">
-  <div class="topbar-brand"><div class="brand-icon">☀️</div><span class="brand-name">СЕС Калькулятор</span></div>
-  <div class="topbar-controls">
-    <button class="lang-btn active" data-lang="uk" onclick="setLang('uk')">🇺🇦 УКР</button>
-    <button class="lang-btn" data-lang="en" onclick="setLang('en')">🇬🇧 ENG</button>
-    <button class="btn btn-ghost" onclick="resetAll()" style="color:var(--c-red);font-size:12px;">🔄 Скинути</button>
-  </div>
-</header>
+<div class="topbar-controls">
+  <button class="btn btn-ghost" onclick="resetAll()" style="color:var(--c-red);font-size:12px;">🔄 Скинути</button>
+</div>
 
 <nav class="tabs-nav" id="tabsNav">
   <a class="tab-btn active" href="#sec0" onclick="navClick(0)"><span class="tab-icon">🏠</span><span class="tab-text">Про об'єкт</span></a>
@@ -1561,7 +1556,20 @@ function resetAll() { if (confirm(currentLang === 'uk' ? 'Скинути всі 
 function shareCalc() { navigator.clipboard.writeText(window.location.href.split('#')[0]).then(() => alert(currentLang === 'uk' ? 'Посилання скопійовано!' : 'Link copied!')); }
 
 window.addEventListener('load', () => { 
-  setLang('uk');
+  // Встановлюємо українську мову за замовчуванням
+  currentLang = 'uk';
+  // Оновлюємо всі тексти на українську
+  const t = translations['uk'];
+  document.querySelector('.brand-name').textContent = t['brand-name'];
+  document.querySelectorAll('.tab-btn').forEach((btn, idx) => { if(btn.querySelector('.tab-text')) btn.querySelector('.tab-text').textContent = t[`tab-${idx}`]; });
+  
+  // Оновлюємо одиниці вимірювання
+  const pshValue = getPSH();
+  const eta = DEFAULT_EFFICIENCY;
+  const genPerKwp = Math.round(pshValue * 365 * eta * 0.82);
+  document.getElementById('kpi-psh').innerHTML = pshValue + ' <span class="unit">год/день</span>';
+  document.getElementById('kpi-gen-kwp').innerHTML = genPerKwp + ' <span class="unit">кВт·год/рік</span>';
+  
   if (localStorage.getItem('sesCalcData')) document.getElementById('restoreModal').style.display = 'flex'; 
   else debouncedRecalc(); 
 });
