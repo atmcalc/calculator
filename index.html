@@ -388,7 +388,7 @@ select.inp { cursor: pointer; }
     <div class="grid-2">
       <div>
         <div class="field-group"><div class="field-label field-annual-consumption"><span>Річне споживання</span><span class="tooltip-icon" data-tip="Загальна кількість електроенергії за рік">ⓘ</span></div><div class="inp-unit"><input class="inp" type="number" id="annualConsumption" value="500000" min="0" step="1000" oninput="debouncedRecalc()"><span class="unit-label">кВт·год</span></div></div>
-        <div class="field-group"><div class="field-label field-tariff"><span>Тариф на електроенергію</span><span class="tooltip-icon" data-tip="Середня ціна за 1 кВт·год">ⓘ</span></div><div class="inp-unit"><input class="inp" type="number" id="tariff" value="4.32" min="0" step="0.01" oninput="debouncedRecalc()"><span class="unit-label">₴/кВт</span></div></div>
+        <div class="field-group"><div class="field-label field-tariff"><span>Тариф на електроенергію</span><span class="tooltip-icon" data-tip="Середня ціна за 1 кВт·год">ⓘ</span></div><div class="inp-unit"><input class="inp" type="number" id="tariff" value="14.32" min="0" step="0.01" oninput="debouncedRecalc()"><span class="unit-label">₴/кВт</span></div></div>
         <div class="field-group"><div class="field-label field-tariff-growth">Прогноз зростання тарифу</div><select class="inp" id="tariffGrowth" onchange="debouncedRecalc()"><option value="0">0% / рік</option><option value="0.05">+5% / рік</option><option value="0.10" selected>+10% / рік</option><option value="0.15">+15% / рік</option><option value="0.20">+20% / рік</option></select></div>
       </div>
       <div>
