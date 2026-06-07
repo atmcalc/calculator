@@ -1,1 +1,1463 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Калькулятор СЕС — Попередній розрахунок</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+:root {
+  --c-bg: #F8FAFC;
+  --c-surface: #FFFFFF;
+  --c-surface2: #F1F5F9;
+  --c-border: #E2E8F0;
+  --c-border2: #CBD5E1;
+  --c-sun: #F59E0B;
+  --c-sun2: #EA580C;
+  --c-sun-glow: rgba(245,158,11,0.1);
+  --c-green: #10B981;
+  --c-blue: #3B82F6;
+  --c-red: #EF4444;
+  --c-text: #1E293B;
+  --c-text2: #475569;
+  --c-text3: #94A3B8;
+  --r: 8px;
+  --r2: 12px;
+  --font: 'Inter', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.topbar {
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.topbar-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+.brand-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--c-sun), var(--c-sun2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: white; }
+.topbar-controls { display: flex; align-items: center; gap: 8px; }
+.lang-btn { background: var(--c-surface2); border: 1px solid var(--c-border); color: var(--c-text2); border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: var(--font); }
+.lang-btn.active { background: var(--c-sun); border-color: var(--c-sun); color: white; }
+.lang-btn:hover:not(.active) { background: #E2E8F0; color: var(--c-text); }
+
+.tabs-nav {
+  background: rgba(255,255,255,0.98);
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  padding: 0 20px;
+  overflow-x: auto;
+  position: fixed;
+  top: 60px; left: 0; right: 0;
+  z-index: 999;
+  backdrop-filter: blur(8px);
+  scrollbar-width: none;
+}
+.tabs-nav::-webkit-scrollbar { display: none; }
+.tab-btn { padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--c-text2); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; display: flex; align-items: center; gap: 6px; border: none; background: none; font-family: var(--font); }
+.tab-btn:hover { color: var(--c-sun); }
+.tab-btn.active { color: var(--c-sun); border-bottom-color: var(--c-sun); }
+.tab-icon { font-size: 14px; }
+
+.main { max-width: 1200px; margin: 0 auto; padding: 126px 20px 80px; }
+.section { margin-bottom: 56px; scroll-margin-top: 126px; }
+.sec-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+.sec-title .accent { color: var(--c-sun); }
+.sec-desc { color: var(--c-text2); font-size: 13px; margin-bottom: 20px; }
+.card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--c-sun); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.card-title::before { content: ''; width: 3px; height: 14px; background: var(--c-sun); border-radius: 2px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+.field-group { margin-bottom: 14px; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--c-text2); margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.tooltip-icon { cursor: help; color: var(--c-text3); font-size: 12px; position: relative; }
+.tooltip-icon:hover::after { content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: var(--c-surface); border: 1px solid var(--c-border); color: var(--c-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; max-width: 220px; white-space: normal; z-index: 100; min-width: 150px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.inp { width: 100%; background: var(--c-surface2); border: 1px solid var(--c-border); color: var(--c-text); border-radius: var(--r); padding: 9px 12px; font-size: 14px; transition: border-color 0.15s; font-family: var(--font); }
+.inp:focus { outline: none; border-color: var(--c-sun); box-shadow: 0 0 0 3px var(--c-sun-glow); }
+select.inp { cursor: pointer; }
+.inp-unit { position: relative; }
+.inp-unit .inp { padding-right: 54px; }
+.unit-label { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--c-text2); font-size: 12px; pointer-events: none; }
+
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; background: var(--c-border); border-radius: 2px; cursor: pointer; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--c-sun); border-radius: 50%; cursor: pointer; }
+.slider-val { min-width: 50px; text-align: right; font-weight: 700; color: var(--c-sun); font-size: 14px; }
+
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.toggle-label { font-size: 13px; color: var(--c-text2); }
+.toggle { width: 38px; height: 20px; background: var(--c-border); border-radius: 10px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+.toggle.on { background: var(--c-sun); }
+.toggle::after { content: ''; width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: left 0.2s; }
+.toggle.on::after { left: 20px; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi-card { background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 16px 18px; position: relative; overflow: hidden; }
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--c-sun), var(--c-sun2)); }
+.kpi-label { font-size: 10px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 800; color: var(--c-text); line-height: 1; }
+.kpi-value .unit { font-size: 13px; font-weight: 400; color: var(--c-text2); margin-left: 3px; }
+.kpi-sub { font-size: 11px; color: var(--c-text2); margin-top: 4px; }
+.kpi-card.highlight .kpi-value { color: var(--c-sun); }
+.kpi-card.green-card .kpi-value { color: var(--c-green); }
+
+.placement-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-bottom: 18px; }
+.placement-card { background: var(--c-surface2); border: 2px solid var(--c-border); border-radius: var(--r2); padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.15s; }
+.placement-card:hover { border-color: var(--c-sun); }
+.placement-card.active { border-color: var(--c-sun); background: var(--c-sun-glow); }
+.placement-icon { font-size: 22px; margin-bottom: 5px; }
+.placement-name { font-size: 11px; font-weight: 700; }
+.placement-coeff { font-size: 10px; color: var(--c-text2); margin-top: 2px; }
+
+.chart-wrap { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r); padding: 20px; margin-bottom: 16px; }
+.chart-title { font-size: 11px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
+.canvas-box { position: relative; width: 100%; height: 420px; }
+
+.scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.scenario-card { background: var(--c-surface2); border: 2px solid var(--c-border); border-radius: var(--r2); padding: 18px; cursor: pointer; transition: all 0.15s; position: relative; }
+.scenario-card:hover { border-color: var(--c-sun); }
+.scenario-card.selected { border-color: var(--c-sun); background: var(--c-sun-glow); }
+.sc-badge { position: absolute; top: 14px; right: 14px; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+.sc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sc-num { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+.sc-name { font-size: 14px; font-weight: 700; }
+.sc-tag { font-size: 11px; color: var(--c-text2); margin-top: 1px; }
+.sc-desc { font-size: 12px; color: var(--c-text2); margin-bottom: 12px; line-height: 1.5; }
+.sc-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.sc-metric { background: var(--c-surface); border-radius: 6px; padding: 8px 10px; border: 1px solid var(--c-border); }
+.sc-metric-label { font-size: 9px; color: var(--c-text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+.sc-metric-val { font-size: 13px; font-weight: 700; margin-top: 2px; color: var(--c-sun); }
+
+.scenario-mode-btn { transition: all 0.2s ease; }
+.scenario-mode-btn:hover { transform: translateY(-1px); }
+.scenario-mode-btn.active { box-shadow: 0 2px 6px rgba(245,158,11,0.3); }
+
+.info-box { border-radius: var(--r); padding: 12px 16px; margin-bottom: 14px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.info-box.yellow { background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; }
+.info-box.green { background: #D1FAE5; border: 1px solid #A7F3D0; color: #065F46; }
+.info-box.blue { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; }
+.info-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--c-text2); border-bottom: 1px solid var(--c-border); background: var(--c-surface2); }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--c-border2); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table .num { font-weight: 700; font-size: 15px; text-align: right; }
+.data-table .sun { color: var(--c-sun); }
+.data-table .green { color: var(--c-green); }
+
+.btn { padding: 10px 20px; border-radius: var(--r); font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 7px; font-family: var(--font); }
+.btn-primary { background: linear-gradient(135deg, var(--c-sun), var(--c-sun2)); color: white; }
+.btn-primary:hover { filter: brightness(1.05); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+.btn-outline { background: transparent; border: 1px solid var(--c-border); color: var(--c-text2); }
+.btn-outline:hover { border-color: var(--c-sun); color: var(--c-sun); }
+.btn-ghost { background: transparent; color: var(--c-text2); }
+.btn-ghost:hover { color: var(--c-sun); }
+.btn-row { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+.mode-switch { display: flex; background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r); padding: 3px; margin-bottom: 18px; }
+.mode-btn { flex: 1; padding: 7px 12px; text-align: center; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--c-text2); transition: all 0.15s; border: none; background: none; font-family: var(--font); }
+.mode-btn.active { background: var(--c-sun); color: white; }
+
+.orient-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.orient-btn { padding: 8px 6px; text-align: center; border-radius: var(--r); border: 1px solid var(--c-border); background: var(--c-surface2); cursor: pointer; font-size: 11px; font-weight: 600; color: var(--c-text2); transition: all 0.15s; }
+.orient-btn.active { border-color: var(--c-sun); background: var(--c-sun-glow); color: var(--c-sun); }
+.orient-coeff { font-size: 10px; color: var(--c-text3); margin-top: 2px; }
+
+.report-preview { background: white; border-radius: var(--r2); overflow: hidden; margin-bottom: 20px; border: 1px solid var(--c-border); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.rp-header { background: linear-gradient(135deg, #0F172A, #1E293B); padding: 28px 32px; color: white; }
+.rp-logo-row { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.rp-logo-box { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 6px 14px; font-weight: 700; font-size: 14px; color: var(--c-sun); }
+.rp-date { font-size: 11px; color: rgba(255,255,255,0.5); }
+.rp-h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+.rp-h1 span { color: var(--c-sun); }
+.rp-object { font-size: 13px; color: rgba(255,255,255,0.6); }
+.rp-kpis { display: grid; grid-template-columns: repeat(3,1fr); }
+.rp-kpi { padding: 16px 20px; border-right: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); background: white; }
+.rp-kpi:nth-child(3n) { border-right: none; }
+.rp-kpi-label { font-size: 10px; color: var(--c-text2); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; }
+.rp-kpi-val { font-size: 22px; font-weight: 800; color: #1E293B; margin-top: 4px; }
+.rp-kpi-val .rp-unit { font-size: 12px; font-weight: 400; color: #64748B; }
+.rp-body { padding: 24px 32px; }
+.rp-section-title { font-size: 14px; font-weight: 700; color: #1E293B; border-bottom: 2px solid var(--c-sun); padding-bottom: 6px; margin: 20px 0 12px; }
+.rp-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
+.rp-row-label { color: #64748B; }
+.rp-row-val { font-weight: 600; color: #1E293B; }
+.rp-cta { background: linear-gradient(135deg, #0F172A, #1E293B); padding: 20px 32px; color: white; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.rp-cta-text h3 { color: var(--c-sun); font-size: 16px; margin-bottom: 4px; }
+.rp-cta-text p { font-size: 11px; color: rgba(255,255,255,0.6); }
+.rp-contacts { font-size: 11px; text-align: right; line-height: 1.6; color: rgba(255,255,255,0.8); }
+.rp-disclaimer { font-size: 9px; color: #94A3B8; padding: 16px 32px 20px; font-style: italic; }
+
+.lead-form { background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 24px; margin-bottom: 20px; }
+.lead-form h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.lead-form p { font-size: 13px; color: var(--c-text2); margin-bottom: 18px; }
+
+.compare-wrap { overflow-x: auto; margin-bottom: 16px; }
+.compare-table { min-width: 700px; width: 100%; border-collapse: collapse; font-size: 12px; }
+.compare-table th { padding: 10px 14px; text-align: center; font-weight: 700; font-size: 11px; background: var(--c-surface2); color: var(--c-text2); border-bottom: 1px solid var(--c-border); }
+.compare-table td { padding: 9px 14px; border-bottom: 1px solid var(--c-border2); text-align: center; }
+.compare-table .row-label { text-align: left; color: var(--c-text2); font-weight: 500; }
+.compare-table .best { background: rgba(16,185,129,0.08); color: #10B981; font-weight: 700; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.modal { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r2); padding: 28px; max-width: 380px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.modal p { font-size: 13px; color: var(--c-text2); margin-bottom: 20px; }
+
+.badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.badge-green { background: #D1FAE5; color: #065F46; }
+.badge-yellow { background: #FEF3C7; color: #92400E; }
+.badge-red { background: #FEE2E2; color: #991B1B; }
+.badge-blue { background: #EFF6FF; color: #1E40AF; }
+
+.divider { height: 1px; background: var(--c-border); margin: 16px 0; }
+
+@media (max-width: 768px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-4 { grid-template-columns: 1fr; }
+  .scenario-grid { grid-template-columns: 1fr; }
+  .placement-grid { grid-template-columns: repeat(3,1fr); }
+  .rp-kpis { grid-template-columns: 1fr 1fr; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .main { padding: 118px 12px 60px; }
+  .topbar { padding: 0 12px; }
+  .tabs-nav { padding: 0 8px; }
+  .tab-btn { padding: 10px 12px; font-size: 12px; }
+  .canvas-box { height: 360px; }
+}
+  /* Стилі для графіків у звіті */
+.rp-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+.rp-chart-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; }
+.rp-chart-label { font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px; text-align: center; }
+@media (max-width: 768px) { .rp-charts-row { grid-template-columns: 1fr; } }
+  /* Стилі для індикатора завантаження PDF */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  color: white;
+  font-size: 16px;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loader-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top-color: #F59E0B;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="modal-overlay" id="restoreModal" style="display:none;">
+  <div class="modal">
+    <h3>Відновити розрахунок?</h3>
+    <p>Знайдено збережені дані попереднього розрахунку. Відновити їх?</p>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-primary" onclick="restoreData()">Відновити</button>
+      <button class="btn btn-outline" onclick="closeModal()">Новий розрахунок</button>
+    </div>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-brand"><div class="brand-icon">☀️</div><span>СЕС Калькулятор</span></div>
+  <div class="topbar-controls">
+    <button class="lang-btn active" onclick="setLang('uk')">🇺🇦 УКР</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 ENG</button>
+    <button class="btn btn-ghost" onclick="resetAll()" style="color:var(--c-red);font-size:12px;">🔄 Скинути</button>
+  </div>
+</header>
+
+<nav class="tabs-nav" id="tabsNav">
+  <a class="tab-btn active" href="#sec0" onclick="navClick(0)"><span class="tab-icon">🏠</span>Про об'єкт</a>
+  <a class="tab-btn" href="#sec1" onclick="navClick(1)"><span class="tab-icon">☀️</span>Площа та потужність</a>
+  <a class="tab-btn" href="#sec2" onclick="navClick(2)"><span class="tab-icon">⚡</span>Генерація</a>
+  <a class="tab-btn" href="#sec3" onclick="navClick(3)"><span class="tab-icon">💰</span>Фінанси</a>
+  <a class="tab-btn" href="#sec4" onclick="navClick(4)"><span class="tab-icon">🔀</span>Сценарії</a>
+  <a class="tab-btn" href="#sec5" onclick="navClick(5)"><span class="tab-icon">📄</span>Звіт</a>
+</nav>
+
+<main class="main">
+
+<!-- SECTION 1 -->
+<section class="section" id="sec0">
+  <div class="sec-title">🏠 Про <span class="accent">об'єкт</span></div>
+  <div class="sec-desc">Базова інформація для всіх подальших розрахунків.</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Загальні дані</div>
+      <div class="field-group"><div class="field-label">Назва об'єкта</div><input class="inp" type="text" id="objName" value="Мій об'єкт" oninput="updateReport()"></div>
+      <div class="field-group"><div class="field-label">Місто</div><input class="inp" type="text" id="objCity" placeholder="Київ" oninput="updateReport()"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Місцезнаходження об'єкта</div>
+      <div class="field-group"><div class="field-label">Область / регіон</div>
+        <select class="inp" id="region" onchange="regionChange()">
+          <option value="4.7">Автономна Республіка Крим</option><option value="3.9">Вінницька обл.</option><option value="3.8">Волинська обл.</option><option value="4.0">Дніпропетровська обл.</option><option value="4.0">Донецька обл.</option><option value="3.8">Житомирська обл.</option><option value="4.1">Закарпатська обл.</option><option value="4.3">Запорізька обл.</option><option value="3.9">Івано-Франківська обл.</option><option value="4.0" selected>Київська обл.</option><option value="3.9">Кіровоградська обл.</option><option value="4.0">Луганська обл.</option><option value="3.7">Львівська обл.</option><option value="4.2">Миколаївська обл.</option><option value="4.7">Одеська обл.</option><option value="4.0">Полтавська обл.</option><option value="3.8">Рівненська обл.</option><option value="4.0">Сумська обл.</option><option value="3.9">Тернопільська обл.</option><option value="4.2">Харківська обл.</option><option value="4.3">Херсонська обл.</option><option value="4.0">Хмельницька обл.</option><option value="3.9">Черкаська обл.</option><option value="3.8">Чернівецька обл.</option><option value="3.8">Чернігівська обл.</option><option value="4.0">м. Київ</option>
+        </select>
+      </div>
+      <div class="kpi-grid" style="margin-top:12px;grid-template-columns:1fr 1fr;">
+        <div class="kpi-card highlight"><div class="kpi-label">PSH</div><div class="kpi-value" id="kpi-psh">4.0 <span class="unit">год/день</span></div></div>
+        <div class="kpi-card"><div class="kpi-label">Генерація / кВп</div><div class="kpi-value" id="kpi-gen-kwp">1150 <span class="unit">кВт·год/рік</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Споживання електроенергії</div>
+    <div class="grid-2">
+      <div>
+        <div class="field-group"><div class="field-label"><span>Річне споживання</span><span class="tooltip-icon" data-tip="Загальна кількість електроенергії за рік">ⓘ</span></div><div class="inp-unit"><input class="inp" type="number" id="annualConsumption" value="500000" min="0" step="1000" oninput="debouncedRecalc()"><span class="unit-label">кВт·год</span></div></div>
+        <div class="field-group"><div class="field-label"><span>Тариф на електроенергію</span><span class="tooltip-icon" data-tip="Середня ціна за 1 кВт·год">ⓘ</span></div><div class="inp-unit"><input class="inp" type="number" id="tariff" value="4.32" min="0" step="0.01" oninput="debouncedRecalc()"><span class="unit-label">₴/кВт</span></div></div>
+        <div class="field-group"><div class="field-label">Прогноз зростання тарифу</div><select class="inp" id="tariffGrowth" onchange="debouncedRecalc()"><option value="0">0% / рік</option><option value="0.05">+5% / рік</option><option value="0.10" selected>+10% / рік</option><option value="0.15">+15% / рік</option><option value="0.20">+20% / рік</option></select></div>
+      </div>
+      <div>
+        <div class="kpi-grid" style="grid-template-columns:1fr 1fr;"><div class="kpi-card highlight"><div class="kpi-label">Річні витрати</div><div class="kpi-value" id="kpi-annual-cost">2 160 000 <span class="unit">₴</span></div></div><div class="kpi-card"><div class="kpi-label">Добове споживання</div><div class="kpi-value" id="kpi-daily">1 370 <span class="unit">кВт·год</span></div></div></div>
+        <div class="info-box yellow"><span class="info-icon">💡</span><span id="txt-cost-insight">При зростанні тарифу на 10%/рік витрати через 10 років збільшаться у 2.6 рази.</span></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- DG BLOCK -->
+  <div class="card">
+    <div class="card-title">Дизельний генератор (опційно)<div class="toggle" id="dgToggle" onclick="toggleDG()" style="margin-left:auto;"></div></div>
+    <div id="dgFields" style="display:none;">
+      <div class="grid-4">
+        <div class="field-group"><div class="field-label">Потужність ДГ</div><div class="inp-unit"><input class="inp" type="number" id="dgPower" value="200" min="0" step="10" oninput="debouncedRecalc()"><span class="unit-label">кВт</span></div></div>
+        <div class="field-group"><div class="field-label">Витрата пального</div><div class="inp-unit"><input class="inp" type="number" id="dgFuel" value="0.27" min="0" step="0.01" oninput="debouncedRecalc()"><span class="unit-label">л/кВт·год</span></div></div>
+        <div class="field-group"><div class="field-label">Ціна дизелю</div><div class="inp-unit"><input class="inp" type="number" id="dgFuelPrice" value="50" min="0" step="5" oninput="debouncedRecalc()"><span class="unit-label">₴/л</span></div></div>
+        <div class="field-group"><div class="field-label">Год. роботи ДГ/добу</div><div class="inp-unit"><input class="inp" type="number" id="dgHours" value="6" min="0" max="24" step="1" oninput="debouncedRecalc()"><span class="unit-label">год</span></div></div>
+      </div>
+      <div class="kpi-grid" style="grid-template-columns:1fr 1fr 1fr;">
+        <div class="kpi-card"><div class="kpi-label">Річні витрати на ДГ</div><div class="kpi-value" id="kpi-dg-cost">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Пальне на рік</div><div class="kpi-value" id="kpi-dg-fuel">—</div></div>
+        <div class="kpi-card highlight"><div class="kpi-label">Потенційна економія з СЕС</div><div class="kpi-value" id="kpi-dg-saving">—</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2 -->
+<section class="section" id="sec1">
+  <div class="sec-title">☀️ Площа та <span class="accent">потужність</span></div>
+  <div class="sec-desc">Вкажіть доступну площу — калькулятор визначить яку потужність можна розмістити, або навпаки.</div>
+  <div class="mode-switch">
+    <button class="mode-btn active" id="modeA" onclick="setMode('area')">📐 Є площа → яку потужність?</button>
+    <button class="mode-btn" id="modeP" onclick="setMode('power')">⚡ Хочу потужність → яка площа?</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Тип розміщення панелей</div>
+    <div class="placement-grid">
+      <div class="placement-card active" onclick="setPlacement('flatRoof',this)"><div class="placement-icon">🏢</div><div class="placement-name">Плоский дах</div><div class="placement-coeff">60% · ~7 м²/кВп</div></div>
+      <div class="placement-card" onclick="setPlacement('slopedRoof',this)"><div class="placement-icon">🏠</div><div class="placement-name">Похилий дах</div><div class="placement-coeff">87% · ~6.5 м²/кВп</div></div>
+      <div class="placement-card" onclick="setPlacement('ground',this)"><div class="placement-icon">🌿</div><div class="placement-name">Наземна</div><div class="placement-coeff">45% · ~12 м²/кВп</div></div>
+      <div class="placement-card" onclick="setPlacement('facade',this)"><div class="placement-icon">🏗️</div><div class="placement-name">Фасад</div><div class="placement-coeff">80% · ~8 м²/кВп</div></div>
+      <div class="placement-card" onclick="setPlacement('carport',this)"><div class="placement-icon">🚗</div><div class="placement-name">Навіс</div><div class="placement-coeff">90% · ~7 м²/кВп</div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div id="areaInputBlock">
+          <div class="field-group"><div class="field-label">Доступна площа (брутто)</div><div class="inp-unit"><input class="inp" type="number" id="availArea" value="1000" min="1" step="10" oninput="debouncedRecalc()"><span class="unit-label">м²</span></div></div>
+        </div>
+        <div id="powerInputBlock" style="display:none;">
+          <div class="field-group"><div class="field-label">Бажана потужність СЕС</div><div class="inp-unit"><input class="inp" type="number" id="desiredPower" value="200" min="1" step="5" oninput="debouncedRecalc()"><span class="unit-label">кВп</span></div></div>
+        </div>
+        <div class="field-group"><div class="field-label">Потужність однієї панелі</div><select class="inp" id="panelWatt" onchange="debouncedRecalc()"><option value="400">400 Вт (2.0×1.0 м)</option><option value="450">450 Вт (2.1×1.0 м)</option><option value="500" selected>500 Вт (2.1×1.1 м)</option><option value="550">550 Вт (2.3×1.1 м)</option><option value="600">600 Вт (2.4×1.1 м)</option></select></div>
+      </div>
+      <div>
+        <div class="field-group"><div class="field-label">Орієнтація панелей</div>
+          <div class="orient-grid">
+            <div class="orient-btn active" onclick="setOrient('S',1.00,this)">Південь<div class="orient-coeff">×1.00</div></div>
+            <div class="orient-btn" onclick="setOrient('SW',0.95,this)">Пд-Захід<div class="orient-coeff">×0.95</div></div>
+            <div class="orient-btn" onclick="setOrient('SE',0.95,this)">Пд-Схід<div class="orient-coeff">×0.95</div></div>
+            <div class="orient-btn" onclick="setOrient('EW',0.82,this)">Схід-Захід<div class="orient-coeff">×0.82</div></div>
+            <div class="orient-btn" onclick="setOrient('W',0.82,this)">Захід<div class="orient-coeff">×0.82</div></div>
+            <div class="orient-btn" onclick="setOrient('N',0.60,this)">Північ<div class="orient-coeff">×0.60</div></div>
+          </div>
+        </div>
+        <div class="field-group" style="margin-top:14px;">
+          <div class="field-label"><span>Кут нахилу панелей</span><span class="tooltip-icon" data-tip="Оптимальний кут для України: 30–35°.">ⓘ</span></div>
+          <div class="slider-row"><input type="range" class="slider" id="tiltSlider" min="0" max="90" value="30" oninput="document.getElementById('tiltVal').textContent=this.value+'°'; debouncedRecalc();"><span class="slider-val" id="tiltVal">30°</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Результати розрахунку</div>
+    <div class="kpi-grid">
+      <div class="kpi-card highlight"><div class="kpi-label">Встановлена потужність</div><div class="kpi-value" id="r-power">— <span class="unit">кВп</span></div><div class="kpi-sub" id="r-power-sub"></div></div>
+      <div class="kpi-card"><div class="kpi-label">Кількість панелей</div><div class="kpi-value" id="r-panels">— <span class="unit">шт.</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">Ефективна площа</div><div class="kpi-value" id="r-area">— <span class="unit">м²</span></div><div class="kpi-sub" id="r-area-sub"></div></div>
+      <div class="kpi-card"><div class="kpi-label">Питома площа</div><div class="kpi-value" id="r-spec">— <span class="unit">м²/кВп</span></div></div>
+    </div>
+    <div class="info-box blue"><span class="info-icon">ℹ️</span><span>Потужність СЕС автоматично використовується на вкладках «Генерація», «Фінанси» та «Сценарії».</span></div>
+  </div>
+</section>
+
+<!-- SECTION 3 - ГЕНЕРАЦІЯ -->
+<section class="section" id="sec2">
+  <div class="sec-title">⚡ Генерація <span class="accent">електроенергії</span></div>
+  <div class="sec-desc">Розрахунок обсягу електроенергії, яку виробить ваша СЕС протягом року.</div>
+  
+  <div class="kpi-grid">
+    <div class="kpi-card highlight"><div class="kpi-label">Річна генерація</div><div class="kpi-value" id="r-annual-gen">—</div><div class="kpi-sub">кВт·год/рік</div></div>
+    <div class="kpi-card green-card"><div class="kpi-label">Покриття споживання</div><div class="kpi-value" id="r-coverage">—</div><div class="kpi-sub" id="r-coverage-sub"></div></div>
+    <div class="kpi-card"><div class="kpi-label">Добова (середня)</div><div class="kpi-value" id="r-daily-gen">—</div><div class="kpi-sub">кВт·год/день</div></div>
+    <div class="kpi-card"><div class="kpi-label">Потужність через 25 р.</div><div class="kpi-value" id="r-degrad">88.2 <span class="unit">%</span></div><div class="kpi-sub">−0.5% / рік</div></div>
+  </div>
+  
+  <!-- Перемикач сценаріїв для графіка -->
+  <div style="margin-bottom: 20px;">
+    <div style="font-size: 12px; font-weight: 600; color: var(--c-text2); margin-bottom: 8px;">Режим роботи СЕС:</div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="scenario-mode-btn active" data-scenario="curtailment" onclick="setScenarioMode('curtailment')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid var(--c-border); background: var(--c-sun); color: white; font-size: 12px; font-weight: 500; cursor: pointer;">🔌 Обмеження видачі</button>
+      <button class="scenario-mode-btn" data-scenario="feedin" onclick="setScenarioMode('feedin')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid var(--c-border); background: var(--c-surface2); color: var(--c-text2); font-size: 12px; font-weight: 500; cursor: pointer;">💰 Продаж у мережу</button>
+    </div>
+  </div>
+  
+  <div class="chart-wrap">
+    <div class="chart-title">⚡ Місячний баланс електроенергії: генерація, споживання та надлишок</div>
+    <div class="canvas-box" style="height:420px;">
+      <canvas id="chartMonthly"></canvas>
+    </div>
+  </div>
+  
+  <!-- Легенда -->
+  <div style="display: flex; justify-content: center; gap: 24px; margin-top: 16px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 20px; height: 20px; background: #F59E0B; border-radius: 4px;"></div><span style="font-size: 12px;">Генерація СЕС (використана)</span></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 20px; height: 20px; background: #10B981; border-radius: 4px;"></div><span style="font-size: 12px;">Споживання з мережі (купуємо)</span></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 20px; height: 20px; background: #EF4444; border-radius: 4px;"></div><span style="font-size: 12px;">Надлишок (обрізається)</span></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 20px; height: 20px; background: #3B82F6; border-radius: 4px;"></div><span style="font-size: 12px;">Продаж у мережу (дохід)</span></div>
+  </div>
+</section>
+
+<!-- SECTION 4 - ФІНАНСОВИЙ АНАЛІЗ -->
+<section class="section" id="sec3">
+  <div class="sec-title">💰 Фінансовий <span class="accent">аналіз</span></div>
+  <div class="sec-desc">CAPEX, OPEX, строк окупності та порівняння варіантів.</div>
+  
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Капітальні витрати (CAPEX)</div>
+      <div class="field-group"><div class="field-label">Тип СЕС</div>
+        <select class="inp" id="sesType" onchange="debouncedRecalc()">
+          <option value="55000">On-grid з обмеженням видачі (дах)</option>
+          <option value="50000">On-grid (наземна)</option>
+          <option value="58000">On-grid з продажем у мережу</option>
+          <option value="70000">Гібридна (готовність до батарей)</option>
+        </select>
+      </div>
+      <div class="field-group"><div class="field-label"><span>Довжина кабельної траси</span><span class="tooltip-icon" data-tip="~300 грн/м орієнтовно.">ⓘ</span></div><div class="inp-unit"><input class="inp" type="number" id="cableLen" value="50" min="0" step="10" oninput="debouncedRecalc()"><span class="unit-label">м</span></div></div>
+      <div class="field-group"><div class="field-label">Вартість трансформатора</div><div class="inp-unit"><input class="inp" type="number" id="transformerCost" value="0" min="0" step="10000" oninput="debouncedRecalc()"><span class="unit-label">₴</span></div></div>
+      <div class="toggle-row"><div class="toggle" id="bessToggle" onclick="toggleBESS()"></div><span class="toggle-label">Додати батарею (BESS)?</span></div>
+      <div id="bessFields" style="display:none;"><div class="field-group"><div class="field-label">Ємність батареї</div><div class="inp-unit"><input class="inp" type="number" id="bessKwh" value="100" min="10" step="10" oninput="debouncedRecalc()"><span class="unit-label">кВт·год</span></div></div></div>
+      <div class="divider"></div>
+      <table class="data-table"><tbody>
+        <tr><td data-i="ct-base">Базова вартість СЕС</td><td class="num sun" id="c-base">—</td></tr>
+        <tr><td data-i="ct-cable">Кабельна траса</td><td class="num" id="c-cable">—</td></tr>
+        <tr><td data-i="ct-bess">Батарея BESS</td><td class="num" id="c-bess">—</td></tr>
+        <tr><td data-i="ct-transf">Трансформатор</td><td class="num" id="c-transformer">—</td></tr>
+        <tr><td data-i="ct-design">Проєктування та ТУ (4%)</td><td class="num" id="c-design">—</td></tr>
+        <tr><td data-i="ct-reserve">Резерв непередбачених (10%)</td><td class="num" id="c-contingency">—</td></tr>
+        <tr style="font-weight:700;"><td data-i="ct-total">РАЗОМ CAPEX</td><td class="num sun" id="c-total">—</td></tr>
+      </tbody></table>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">Результати фінансового аналізу</div>
+      <div class="kpi-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="kpi-card green-card"><div class="kpi-label">Річна економія</div><div class="kpi-value" id="r-saving-y1">—</div></div>
+        <div class="kpi-card highlight"><div class="kpi-label">Строк окупності</div><div class="kpi-value" id="r-payback">— <span class="unit">р.</span></div></div>
+        <div class="kpi-card"><div class="kpi-label">NPV 25 р.</div><div class="kpi-value" id="r-npv">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">IRR</div><div class="kpi-value" id="r-irr">— <span class="unit">%</span></div></div>
+        <div class="kpi-card"><div class="kpi-label">LCOE</div><div class="kpi-value" id="r-lcoe">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">OPEX річний</div><div class="kpi-value" id="r-opex">—</div></div>
+      </div>
+      <div class="info-box green"><span class="info-icon">📈</span><span id="finance-insight">—</span></div>
+    </div>
+  </div>
+  
+  <div class="grid-2">
+    <div class="chart-wrap"><div class="chart-title">Накопичений грошовий потік (25 років)</div><div class="canvas-box" style="height:240px;"><canvas id="chartCashflow"></canvas></div></div>
+    <div class="chart-wrap"><div class="chart-title">Структура CAPEX</div><div class="canvas-box" style="height:240px;"><canvas id="chartCapex"></canvas></div></div>
+  </div>
+  
+  <div class="card">
+    <div class="card-title">Порівняння: з СЕС vs без СЕС</div>
+    <table class="data-table"><thead><tr><th></th><th>Без СЕС</th><th>З СЕС</th><th>Різниця (вигода)</th></tr></thead><tbody>
+      <tr><td>Витрати на ел-ку за 25 р.</td><td class="num" id="cmp-without">—</td><td class="num" id="cmp-with">—</td><td class="num green" id="cmp-diff">—</td></tr>
+      <tr><td>Вартість кВт·год</td><td class="num" id="cmp-tariff-now">—</td><td class="num" id="cmp-lcoe">—</td><td class="num green" id="cmp-lcoe-diff">—</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+<!-- SECTION 5 - СЦЕНАРІЇ (видалено графік порівняння CAPEX/окупності) -->
+<section class="section" id="sec4">
+  <div class="sec-title">🔀 Сценарії <span class="accent">впровадження</span></div>
+  <div class="sec-desc">Порівняйте 5 варіантів СЕС та оберіть оптимальний для вашого об'єкта.</div>
+  
+  <div class="scenario-grid">
+    <div class="scenario-card" onclick="selectScenario(0)" id="sc0"><span class="sc-badge badge badge-blue">On-grid limited</span><div class="sc-header"><div class="sc-num" style="background:rgba(59,130,246,0.15);color:#3B82F6;">01</div><div><div class="sc-name">СЕС з обмеженням видачі</div><div class="sc-tag">Найпростіший вхід</div></div></div><div class="sc-desc">Генерує рівно стільки, скільки споживає об'єкт. Надлишок обрізається.</div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc0-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label">Окупність</div><div class="sc-metric-val" id="sc0-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label">Резерв</div><div class="sc-metric-val" style="color:var(--c-red);">0 год</div></div></div></div>
+    <div class="scenario-card" onclick="selectScenario(1)" id="sc1"><span class="sc-badge badge badge-green">Feed-in</span><div class="sc-header"><div class="sc-num" style="background:rgba(16,185,129,0.15);color:#10B981;">02</div><div><div class="sc-name">СЕС з продажем у мережу</div><div class="sc-tag">Монетизація надлишку</div></div></div><div class="sc-desc">Надлишок передається в мережу за ринковою ціною.</div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc1-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label">Окупність</div><div class="sc-metric-val" id="sc1-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label">Резерв</div><div class="sc-metric-val" style="color:var(--c-red);">0 год</div></div></div></div>
+    <div class="scenario-card" onclick="selectScenario(2)" id="sc2"><span class="sc-badge badge badge-yellow">Hybrid+BESS</span><div class="sc-header"><div class="sc-num" style="background:rgba(245,158,11,0.15);color:var(--c-sun);">03</div><div><div class="sc-name">СЕС + Батарея (BESS)</div><div class="sc-tag">Енергонезалежність</div></div></div><div class="sc-desc">Акумулятор накопичує надлишок вдень і живить об'єкт вночі або під час відключень.</div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc2-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label">Окупність</div><div class="sc-metric-val" id="sc2-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label">Резерв</div><div class="sc-metric-val" style="color:var(--c-green);" id="sc2-reserve">—</div></div></div></div>
+    <div class="scenario-card" onclick="selectScenario(3)" id="sc3"><span class="sc-badge badge badge-red">Solar+DG</span><div class="sc-header"><div class="sc-num" style="background:rgba(239,68,68,0.15);color:#EF4444;">04</div><div><div class="sc-name">СЕС + Дизельний генератор</div><div class="sc-tag">Економія пального</div></div></div><div class="sc-desc">СЕС розвантажує ДГ вдень — зменшує витрату пального на 40–60%.</div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc3-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label">Окупність</div><div class="sc-metric-val" id="sc3-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label">Економія</div><div class="sc-metric-val" style="color:var(--c-green);" id="sc3-fuel">—</div></div></div></div>
+    <div class="scenario-card" onclick="selectScenario(4)" id="sc4" style="grid-column:1/-1;"><span class="sc-badge badge badge-yellow">⭐ Premium</span><div class="sc-header"><div class="sc-num" style="background:rgba(245,158,11,0.2);color:var(--c-sun);">05</div><div><div class="sc-name">СЕС + ДГ + Батарея (Комбо)</div><div class="sc-tag">Максимальна надійність · 24–72 год автономності</div></div></div><div class="sc-desc">Повна тріада: СЕС + батарея + ДГ як резерв резерву. Пріоритет: Мережа → СЕС → BESS → ДГ.</div><div class="sc-metrics"><div class="sc-metric"><div class="sc-metric-label">CAPEX</div><div class="sc-metric-val" id="sc4-capex">—</div></div><div class="sc-metric"><div class="sc-metric-label">Окупність</div><div class="sc-metric-val" id="sc4-pay">—</div></div><div class="sc-metric"><div class="sc-metric-label">Автономність</div><div class="sc-metric-val" style="color:var(--c-green);" id="sc4-reserve">—</div></div><div class="sc-metric"><div class="sc-metric-label">Економія/рік</div><div class="sc-metric-val" id="sc4-saving">—</div></div></div></div>
+  </div>
+  
+  <div class="card">
+    <div class="card-title">Порівняльна таблиця сценаріїв</div>
+    <div class="compare-wrap"><table class="compare-table"><thead><tr><th class="row-label">Параметр</th><th>Сц.1</th><th>Сц.2</th><th>Сц.3</th><th>Сц.4</th><th>Сц.5</th></tr></thead><tbody id="scenarioCompareBody"></tbody></table></div>
+  </div>
+  
+  <!-- Блок з графіком порівняння CAPEX та окупності видалено -->
+</section>
+
+<!-- SECTION 6 - ЗВІТ -->
+<section class="section" id="sec5">
+  <div class="sec-title">📄 PDF <span class="accent">Звіт</span></div>
+  <div class="sec-desc">Завантажте брендований попередній розрахунок для презентації керівництву.</div>
+  
+  <div class="lead-form"><h3>Ваші дані для звіту <span style="color:var(--c-text2);font-size:12px;font-weight:400;">(опційно)</span></h3><p>Заповніть для персоналізованого звіту, або пропустіть.</p>
+    <div class="grid-2">
+      <div class="field-group"><div class="field-label">Ваше ім'я</div><input class="inp" type="text" id="leadName" placeholder="Іван Іваненко" oninput="updateReport()"></div>
+      <div class="field-group"><div class="field-label">Email</div><input class="inp" type="email" id="leadEmail" placeholder="email@company.com"></div>
+      <div class="field-group"><div class="field-label">Телефон</div><input class="inp" type="tel" id="leadPhone" placeholder="+38X XXX XXX XXXX"></div>
+      <div class="field-group"><div class="field-label">Компанія</div><input class="inp" type="text" id="leadCompany" placeholder="ТОВ Водоканал" oninput="updateReport()"></div>
+    </div>
+  </div>
+  
+ <div class="report-preview" id="reportPreview"><div class="rp-header"><div class="rp-logo-row"><div class="rp-logo-box">☀️ СЕС КАЛЬКУЛЯТОР</div><div class="rp-date" id="rp-date"></div></div><div class="rp-h1"><span>Попередній розрахунок</span><br><span id="rp-scenario-name">Сонячної електростанції</span></div><div class="rp-object" id="rp-object-name">Об'єкт: —</div></div><div class="rp-kpis"><div class="rp-kpi"><div class="rp-kpi-label">Потужність СЕС</div><div class="rp-kpi-val" id="rp-power">—<span class="rp-unit"> кВп</span></div></div><div class="rp-kpi"><div class="rp-kpi-label">Річна генерація</div><div class="rp-kpi-val" id="rp-gen">—<span class="rp-unit"> кВт·год/рік</span></div></div><div class="rp-kpi"><div class="rp-kpi-label">Річна економія</div><div class="rp-kpi-val" id="rp-saving">—</div></div><div class="rp-kpi"><div class="rp-kpi-label">Вартість інвестиції</div><div class="rp-kpi-val" id="rp-capex">—</div></div><div class="rp-kpi"><div class="rp-kpi-label">Строк окупності</div><div class="rp-kpi-val" id="rp-payback">—<span class="rp-unit"> р.</span></div></div><div class="rp-kpi"><div class="rp-kpi-label">NPV (25 р.)</div><div class="rp-kpi-val" id="rp-npv">—</div></div></div><div class="rp-body"><div class="rp-section-title">Параметри об'єкта</div><div class="rp-row"><span class="rp-row-label">Об'єкт</span><span class="rp-row-val" id="rp-r-obj">—</span></div><div class="rp-row"><span class="rp-row-label">Регіон / PSH</span><span class="rp-row-val" id="rp-r-region">—</span></div><div class="rp-row"><span class="rp-row-label">Споживання / Тариф</span><span class="rp-row-val" id="rp-r-cons">—</span></div><div class="rp-row"><span class="rp-row-label">Тип розміщення</span><span class="rp-row-val" id="rp-r-placement">—</span></div><div class="rp-section-title">Фінансові показники</div><div class="rp-row"><span class="rp-row-label">CAPEX загальний</span><span class="rp-row-val" id="rp-f-capex">—</span></div><div class="rp-row"><span class="rp-row-label">IRR / LCOE</span><span class="rp-row-val" id="rp-f-irr">—</span></div><div class="rp-row"><span class="rp-row-label">Покриття споживання</span><span class="rp-row-val" id="rp-f-cover">—</span></div>
+
+<!-- ========== ДОДАТИ БЛОК З ГРАФІКАМИ ========== -->
+<div class="rp-section-title">Графіки</div>
+<div class="rp-charts-row">
+  <div class="rp-chart-box">
+    <div class="rp-chart-label">Місячна генерація</div>
+    <canvas id="rp-chart-monthly" style="height:160px;width:100%;"></canvas>
+  </div>
+  <div class="rp-chart-box">
+    <div class="rp-chart-label">Грошовий потік</div>
+    <canvas id="rp-chart-cashflow" style="height:160px;width:100%;"></canvas>
+  </div>
+</div>
+<div style="text-align:center;margin:8px 0 4px;">
+<div style="display:inline-block;width:260px;">
+   <div class="rp-chart-label" style="text-align:center;">Структура CAPEX</div>
+    <canvas id="rp-chart-capex" style="height:160px;width:100%;"></canvas>
+  </div>
+</div>
+<!-- ========== КІНЕЦЬ ДОДАНОГО БЛОКУ ========== -->
+
+</div><div class="rp-cta"><div class="rp-cta-text"><h3>Замовте безкоштовну консультацію</h3><p>Наші спеціалісти розроблять детальне ТЕО для вашого об'єкта</p></div><div class="rp-contacts"><div>📞 +38X XXX XXX XXXX</div><div>✉️ info@company.com</div><div>🌐 www.company.com</div><div id="rp-lead-info" style="margin-top:8px;color:rgba(255,255,255,0.5);font-size:11px;"></div></div></div><div class="rp-disclaimer">Розрахунок є орієнтовним і не є комерційною пропозицією. Точні параметри визначаються після виїзного обстеження об'єкта. Похибка ±15–25%.</div></div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="generatePDF()">📥 Завантажити PDF</button><button class="btn btn-outline" onclick="window.print()">🖨️ Друкувати</button><button class="btn btn-ghost" onclick="shareCalc()">🔗 Поділитися</button><button class="btn btn-ghost" onclick="resetAll()" style="color:var(--c-red);">🔄 Скинути все</button></div>
+  <div class="info-box yellow" style="margin-top:12px;"><span class="info-icon">⚠️</span><span>PDF генерується у вашому браузері. Дані не надсилаються на сервер.</span></div>
+</section>
+
+</main>
+
+<script>
+// ==================== КОНФІГУРАЦІЯ ====================
+const DEFAULT_EFFICIENCY = 0.85;
+
+const CONFIG = {
+  prices: { onGridRoof: 55000, onGridGround: 50000, onGridLimited: 58000, hybrid: 70000, BESS_per_kWh: 35000, DG_adapter: 15000, cable_per_m: 300 },
+  solar: { seasonality: [0.45,0.58,0.82,1.05,1.20,1.28,1.25,1.18,0.98,0.70,0.48,0.38], degradation: 0.005 },
+  finance: { discountRate: 0.10, opex_pct: 0.013, design_pct: 0.04, contingency_pct: 0.10 },
+  placement: {
+    flatRoof:   { uf: 0.60, spm: 7.0, genK: 1.0, name: 'Плоский дах', defaultTilt: 15 },
+    slopedRoof: { uf: 0.87, spm: 6.5, genK: 1.0, name: 'Похилий дах', defaultTilt: 30 },
+    ground:     { uf: 0.45, spm: 12.0, genK: 1.0, name: 'Наземна', defaultTilt: 30 },
+    facade:     { uf: 0.80, spm: 8.0, genK: 0.65, name: 'Фасад', defaultTilt: 90 },
+    carport:    { uf: 0.90, spm: 7.0, genK: 1.0, name: 'Навіс', defaultTilt: 10 }
+  }
+};
+
+let state = { placement: 'flatRoof', orientCoeff: 1.0, orient: 'S', calcMode: 'area', dgOn: false, bessOn: false, selectedScenario: -1, R: {} };
+let charts = {};
+let currentScenario = 'curtailment';
+
+function getPSH() { return parseFloat(document.getElementById('region').value) || 4.0; }
+function fmtN(n, dec=0) { return isNaN(n) || !isFinite(n) ? '—' : n.toLocaleString('uk-UA', {maximumFractionDigits: dec, minimumFractionDigits: dec}); }
+function fmtC(n) { return fmtN(n) + ' ₴'; }
+
+let recalcTimer;
+function debouncedRecalc() { if (recalcTimer) clearTimeout(recalcTimer); recalcTimer = setTimeout(() => recalcAll(), 150); }
+
+const sectionIds = ['sec0','sec1','sec2','sec3','sec4','sec5'];
+function navClick(idx) { document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx)); }
+function updateNavOnScroll() { const scrollY = window.scrollY + 140; let active = 0; sectionIds.forEach((id,i) => { const el = document.getElementById(id); if (el && el.offsetTop <= scrollY) active = i; }); document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===active)); }
+window.addEventListener('scroll', updateNavOnScroll, { passive: true });
+
+function toggleDG() { state.dgOn = !state.dgOn; document.getElementById('dgToggle').classList.toggle('on', state.dgOn); document.getElementById('dgFields').style.display = state.dgOn ? '' : 'none'; debouncedRecalc(); }
+function toggleBESS() { state.bessOn = !state.bessOn; document.getElementById('bessToggle').classList.toggle('on', state.bessOn); document.getElementById('bessFields').style.display = state.bessOn ? '' : 'none'; debouncedRecalc(); }
+
+function setPlacement(key, cardEl) {
+  state.placement = key;
+  document.querySelectorAll('.placement-card').forEach(c => c.classList.remove('active'));
+  if (cardEl) cardEl.classList.add('active');
+  const pl = CONFIG.placement[key];
+  if (pl) {
+    const slider = document.getElementById('tiltSlider');
+    slider.value = pl.defaultTilt;
+    document.getElementById('tiltVal').textContent = pl.defaultTilt + '°';
+  }
+  debouncedRecalc();
+}
+
+function setMode(m) { 
+  state.calcMode = m; 
+  document.getElementById('modeA').classList.toggle('active', m==='area'); 
+  document.getElementById('modeP').classList.toggle('active', m==='power'); 
+  document.getElementById('areaInputBlock').style.display = m==='area' ? '' : 'none'; 
+  document.getElementById('powerInputBlock').style.display = m==='power' ? '' : 'none'; 
+  debouncedRecalc(); 
+}
+
+function setOrient(o, coeff, el) { 
+  state.orient = o; 
+  state.orientCoeff = coeff; 
+  document.querySelectorAll('.orient-btn').forEach(b => b.classList.remove('active')); 
+  if (el) el.classList.add('active'); 
+  debouncedRecalc(); 
+}
+
+function regionChange() { debouncedRecalc(); saveData(); }
+
+function setScenarioMode(scenario) {
+  currentScenario = scenario;
+  document.querySelectorAll('.scenario-mode-btn').forEach(btn => {
+    btn.style.background = 'var(--c-surface2)';
+    btn.style.color = 'var(--c-text2)';
+    btn.classList.remove('active');
+    if (btn.dataset.scenario === scenario) {
+      btn.style.background = 'var(--c-sun)';
+      btn.style.color = 'white';
+      btn.classList.add('active');
+    }
+  });
+  recalcAll();
+}
+
+function recalcAll() {
+  const psh = getPSH();
+  const eta = DEFAULT_EFFICIENCY;
+  const annual = Math.max(0, parseFloat(document.getElementById('annualConsumption').value)||0);
+  const tariff = Math.max(0, parseFloat(document.getElementById('tariff').value)||0);
+  const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value)||0;
+  const panelW = parseInt(document.getElementById('panelWatt').value)||500;
+  const selfConsume = 0.85;
+  const pl = CONFIG.placement[state.placement];
+  
+  const genPerKwp = Math.round(psh * 365 * eta * 0.82);
+  document.getElementById('kpi-psh').innerHTML = psh + ' <span class="unit">год/день</span>';
+  document.getElementById('kpi-gen-kwp').innerHTML = genPerKwp + ' <span class="unit">кВт·год/рік</span>';
+  document.getElementById('kpi-annual-cost').innerHTML = fmtN(annual * tariff) + ' <span class="unit">₴</span>';
+  document.getElementById('kpi-daily').innerHTML = fmtN(annual / 365, 0) + ' <span class="unit">кВт·год</span>';
+  
+  if (state.dgOn) {
+    const dgP = Math.max(0, parseFloat(document.getElementById('dgPower').value)||0);
+    const dgFuel = Math.max(0, parseFloat(document.getElementById('dgFuel').value)||0);
+    const dgFPrice = Math.max(0, parseFloat(document.getElementById('dgFuelPrice').value)||0);
+    const dgH = Math.max(0, parseFloat(document.getElementById('dgHours').value)||0);
+    const dgCostYear = dgP * dgFuel * dgH * 365 * dgFPrice;
+    const dgFuelYear = dgP * dgFuel * dgH * 365;
+    document.getElementById('kpi-dg-cost').innerHTML = fmtC(dgCostYear);
+    document.getElementById('kpi-dg-fuel').innerHTML = fmtN(dgFuelYear,0) + ' л/рік';
+    document.getElementById('kpi-dg-saving').innerHTML = fmtC(dgCostYear * 0.5) + '/рік';
+  }
+  
+  let power, panels, effArea, totalArea;
+  if (state.calcMode === 'area') {
+    const area = Math.max(0, parseFloat(document.getElementById('availArea').value)||0);
+    effArea = area * pl.uf;
+    power = effArea / pl.spm;
+    panels = Math.floor(power * 1000 / panelW);
+    totalArea = area;
+  } else {
+    const desiredKwp = Math.max(0, parseFloat(document.getElementById('desiredPower').value)||0);
+    power = desiredKwp;
+    panels = Math.floor(desiredKwp * 1000 / panelW);
+    effArea = desiredKwp * pl.spm;
+    totalArea = effArea / pl.uf;
+  }
+  
+  document.getElementById('r-power').innerHTML = fmtN(power,1) + ' <span class="unit">кВп</span>';
+  document.getElementById('r-power-sub').textContent = state.orient + ' ×' + state.orientCoeff;
+  document.getElementById('r-panels').innerHTML = fmtN(panels) + ' <span class="unit">шт.</span>';
+  document.getElementById('r-area').innerHTML = fmtN(effArea) + ' <span class="unit">м²</span>';
+  document.getElementById('r-area-sub').textContent = 'з ' + fmtN(totalArea) + ' м² (' + Math.round(pl.uf*100) + '%)';
+  document.getElementById('r-spec').innerHTML = pl.spm.toFixed(1) + ' <span class="unit">м²/кВп</span>';
+  
+  const annualGen = power * psh * 365 * eta * state.orientCoeff * pl.genK;
+  const coverage = annual > 0 ? Math.min(100, (annualGen / annual) * 100) : 0;
+  document.getElementById('r-annual-gen').innerHTML = fmtN(annualGen,0);
+  document.getElementById('r-coverage').innerHTML = coverage.toFixed(1) + '<span class="unit">%</span>';
+  document.getElementById('r-coverage-sub').textContent = fmtN(annualGen * selfConsume,0) + ' кВт·год/рік';
+  document.getElementById('r-daily-gen').innerHTML = fmtN(annualGen / 365,1);
+  document.getElementById('r-degrad').innerHTML = (100 - CONFIG.solar.degradation * 25 * 100).toFixed(1) + ' <span class="unit">%</span>';
+  
+  updateChartMonthly(annualGen, annual);
+  
+  const pricePerKwp = parseInt(document.getElementById('sesType').value);
+  const cableLen = Math.max(0, parseFloat(document.getElementById('cableLen').value)||0);
+  const transformerCost = Math.max(0, parseFloat(document.getElementById('transformerCost').value)||0);
+  const bessKwh = state.bessOn ? Math.max(0, parseFloat(document.getElementById('bessKwh').value)||0) : 0;
+  const cBase = power * pricePerKwp;
+  const cCable = cableLen * CONFIG.prices.cable_per_m;
+  const cBESS = bessKwh * CONFIG.prices.BESS_per_kWh;
+  const cTransformer = transformerCost;
+  const subTotal = cBase + cCable + cBESS + cTransformer;
+  const cDesign = subTotal * CONFIG.finance.design_pct;
+  const cContingency = subTotal * CONFIG.finance.contingency_pct;
+  const capex = subTotal + cDesign + cContingency;
+  const opex = capex * CONFIG.finance.opex_pct;
+  
+  document.getElementById('c-base').innerHTML = fmtC(cBase);
+  document.getElementById('c-cable').innerHTML = fmtC(cCable);
+  document.getElementById('c-bess').innerHTML = bessKwh > 0 ? fmtC(cBESS) : '—';
+  document.getElementById('c-transformer').innerHTML = cTransformer > 0 ? fmtC(cTransformer) : '—';
+  document.getElementById('c-design').innerHTML = fmtC(cDesign);
+  document.getElementById('c-contingency').innerHTML = fmtC(cContingency);
+  document.getElementById('c-total').innerHTML = fmtC(capex);
+  
+  const saving1 = annualGen * selfConsume * tariff;
+  const netCF1 = saving1 - opex;
+  const payback = netCF1 > 0 ? capex / netCF1 : Infinity;
+  
+  let npv = -capex;
+  for (let y=1; y<=25; y++) {
+    const cf = annualGen * selfConsume * tariff * Math.pow(1+tariffGrowth, y) * Math.pow(1 - CONFIG.solar.degradation, y) - opex;
+    npv += cf / Math.pow(1+CONFIG.finance.discountRate, y);
+  }
+  
+  let irrVal = 0;
+  if (netCF1 > 0 && capex > 0) {
+    let lo = -0.5, hi = 5.0;
+    for (let iter=0; iter<60; iter++) {
+      const mid = (lo+hi)/2;
+      let n = -capex;
+      for (let y=1; y<=25; y++) n += (netCF1 * Math.pow(1+tariffGrowth, y)) / Math.pow(1+mid, y);
+      if (n > 0) lo = mid; else hi = mid;
+    }
+    irrVal = (lo+hi)/2 * 100;
+  }
+  
+  let totalGen = 0;
+  for (let y=1; y<=25; y++) totalGen += annualGen * Math.pow(1-CONFIG.solar.degradation, y);
+  const lcoe = totalGen > 0 ? (capex + opex*25) / totalGen : 0;
+  
+  document.getElementById('r-saving-y1').innerHTML = fmtC(saving1) + '/рік';
+  document.getElementById('r-payback').innerHTML = isFinite(payback) ? payback.toFixed(1) + ' <span class="unit">р.</span>' : '—';
+  document.getElementById('r-npv').textContent = fmtC(npv);
+  document.getElementById('r-irr').innerHTML = irrVal > 0 ? irrVal.toFixed(1) + ' <span class="unit">%</span>' : '—';
+  document.getElementById('r-lcoe').textContent = lcoe.toFixed(2) + ' ₴/кВт·год';
+  document.getElementById('r-opex').textContent = fmtC(opex) + '/рік';
+  
+  const insight = payback < 6 ? '✅ Відмінна інвестиція! Окупність ' + payback.toFixed(1) + ' р.' : (payback < 10 ? '📊 Хороша інвестиція. Окупність ' + payback.toFixed(1) + ' р.' : '⚠️ Строк окупності ' + payback.toFixed(1) + ' р. Розгляньте зменшення CAPEX.');
+  document.getElementById('finance-insight').textContent = insight;
+  
+  let costWithout = 0;
+  for (let y=1; y<=25; y++) costWithout += annual * tariff * Math.pow(1+tariffGrowth, y);
+  document.getElementById('cmp-without').textContent = fmtC(costWithout);
+  document.getElementById('cmp-with').textContent = fmtC(capex + opex*25);
+  document.getElementById('cmp-diff').textContent = '+ ' + fmtC(costWithout - (capex + opex*25));
+  document.getElementById('cmp-tariff-now').textContent = tariff.toFixed(2) + ' ₴/кВт·год';
+  document.getElementById('cmp-lcoe').textContent = lcoe.toFixed(2) + ' ₴/кВт·год';
+  document.getElementById('cmp-lcoe-diff').textContent = '−' + (tariff - lcoe).toFixed(2) + ' ₴';
+  
+  const sc1C = cBase + cCable + cTransformer + cDesign + cContingency;
+  const bessAdd = bessKwh > 0 ? cBESS : power * 100 * 35000 / 1000;
+  const dgFuelSavYear = state.dgOn ? Math.max(0, parseFloat(document.getElementById('dgPower').value)||0) * 0.27 * Math.max(0, parseFloat(document.getElementById('dgHours').value)||0) * 365 * Math.max(0, parseFloat(document.getElementById('dgFuelPrice').value)||0) * 0.5 : 0;
+  const sc = [
+    { C: sc1C, save: annualGen * selfConsume * tariff },
+    { C: sc1C * 1.02, save: annualGen * selfConsume * tariff + annualGen * 0.15 * tariff * 0.7 },
+    { C: sc1C * 1.05 + bessAdd, save: annualGen * selfConsume * tariff * 1.05 },
+    { C: sc1C + CONFIG.prices.DG_adapter, save: annualGen * selfConsume * tariff + dgFuelSavYear },
+    { C: (sc1C + CONFIG.prices.DG_adapter) * 1.1 + bessAdd, save: (annualGen * selfConsume * tariff + dgFuelSavYear) * 1.05 }
+  ];
+  sc.forEach(s => { s.op = s.C * CONFIG.finance.opex_pct; s.pay = s.C / (s.save - s.op); });
+  const bessHours = ((bessKwh > 0 ? bessKwh : power * 0.3) / Math.max(1, annual/365) * 24);
+  for (let i=0;i<5;i++) {
+    if (document.getElementById('sc'+i+'-capex')) document.getElementById('sc'+i+'-capex').textContent = fmtC(sc[i].C);
+    if (document.getElementById('sc'+i+'-pay')) document.getElementById('sc'+i+'-pay').textContent = isFinite(sc[i].pay) ? sc[i].pay.toFixed(1)+' р.' : '—';
+  }
+  if (document.getElementById('sc2-reserve')) document.getElementById('sc2-reserve').textContent = bessHours.toFixed(1)+' год';
+  if (document.getElementById('sc3-fuel')) document.getElementById('sc3-fuel').textContent = fmtC(dgFuelSavYear)+'/рік';
+  if (document.getElementById('sc4-reserve')) document.getElementById('sc4-reserve').textContent = (bessHours*2).toFixed(1)+' год';
+  if (document.getElementById('sc4-saving')) document.getElementById('sc4-saving').textContent = fmtC(sc[4].save)+'/рік';
+  
+  // ========== ПОКРАЩЕНА ПОРІВНЯЛЬНА ТАБЛИЦЯ ==========
+  const rows = [
+    ['CAPEX (інвестиції)', sc.map(s => fmtC(s.C))],
+    ['Річна економія', sc.map(s => fmtC(s.save))],
+    ['Окупність (років)', sc.map(s => isFinite(s.pay) ? s.pay.toFixed(1)+' р.' : '—')],
+    ['NPV за 25 років', sc.map((s, idx) => {
+      let npvVal = -s.C;
+      for (let y=1; y<=25; y++) {
+        const cf = s.save * Math.pow(1+tariffGrowth, y) * Math.pow(1 - CONFIG.solar.degradation, y) - s.op;
+        npvVal += cf / Math.pow(1+CONFIG.finance.discountRate, y);
+      }
+      return fmtC(npvVal);
+    })],
+    ['IRR (%)', sc.map((s, idx) => {
+      let irrGuess = 0.15;
+      for (let iter=0; iter<20; iter++) {
+        let npvIr = -s.C;
+        for (let y=1; y<=25; y++) {
+          const cf = s.save * Math.pow(1+tariffGrowth, y) - s.op;
+          npvIr += cf / Math.pow(1+irrGuess, y);
+        }
+        if (Math.abs(npvIr) < 1000) break;
+        irrGuess += npvIr > 0 ? 0.01 : -0.01;
+      }
+      return (irrGuess * 100).toFixed(1) + '%';
+    })],
+    ['Резерв (автономність)', ['Немає', 'Немає', bessHours.toFixed(1)+' год', 'ДГ (паливо)', (bessHours*2).toFixed(1)+' год']],
+    ['Продаж надлишку', ['Ні', 'Так (70% тарифу)', 'Ні', 'Ні', 'Ні']],
+    ['Наявність батареї', ['Ні', 'Ні', 'Так', 'Ні', 'Так']],
+    ['Наявність ДГ', ['Ні', 'Ні', 'Ні', 'Так', 'Так']]
+  ];
+  
+  document.getElementById('scenarioCompareBody').innerHTML = rows.map(([lbl, vals]) => `<tr><td class="row-label">${lbl}</td>${vals.map(v => `<td>${v}</td>`).join('')}</tr>`).join('');
+  
+  updateChartCashflow(capex, netCF1, tariffGrowth);
+  updateChartCapex(cBase, cCable, cBESS, cTransformer, cDesign+cContingency);
+  
+  state.R = { power, annualGen, saving1, capex, payback, npv, lcoe, irr: irrVal, coverage, annual, tariff, psh, effArea, totalArea, panels, placementName: pl.name, orient: state.orient };
+  updateReport(); 
+  saveData();
+}
+
+const MONTHS = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
+
+function updateChartMonthly(annualGen, annual) {
+  const ctx = document.getElementById('chartMonthly').getContext('2d');
+  const seasonSum = CONFIG.solar.seasonality.reduce((a,b)=>a+b,0);
+  const monthlyGen = CONFIG.solar.seasonality.map(k => Math.round(annualGen / 12 * k / (seasonSum/12)));
+  const monthlyConsumption = Array(12).fill(Math.round(annual / 12));
+  
+  const usedGen = monthlyGen.map((gen, i) => Math.min(gen, monthlyConsumption[i]));
+  const gridNeeded = monthlyConsumption.map((cons, i) => Math.max(0, cons - monthlyGen[i]));
+  const surplus = monthlyGen.map((gen, i) => Math.max(0, gen - monthlyConsumption[i]));
+  
+  let surplusLabel = '⚠️ Надлишок (обрізається)';
+  let surplusColor = '#EF4444';
+  
+  if (currentScenario === 'feedin') {
+    surplusLabel = '💰 Продаж у мережу (дохід)';
+    surplusColor = '#3B82F6';
+  }
+  
+  if (charts.monthly) charts.monthly.destroy();
+  
+  charts.monthly = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: MONTHS,
+      datasets: [
+        { label: '☀️ Генерація СЕС (використана)', data: usedGen, backgroundColor: '#F59E0B', borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' },
+        { label: '🔌 Споживання з мережі (купуємо)', data: gridNeeded, backgroundColor: '#10B981', borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' },
+        { label: surplusLabel, data: surplus, backgroundColor: surplusColor, borderRadius: 4, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.8, stack: 'energy' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#475569', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 10, usePointStyle: true, pointStyle: 'rect' } },
+        tooltip: { callbacks: { label: (ctx) => { let label = ctx.dataset.label || ''; let val = ctx.raw; if (val > 0) { if (ctx.datasetIndex === 2 && currentScenario === 'feedin') { const tariff = parseFloat(document.getElementById('tariff').value) || 4.32; return `${label}: ${val.toLocaleString('uk-UA')} кВт·год (≈ ${(val * tariff * 0.7).toLocaleString('uk-UA')} грн)`; } return `${label}: ${val.toLocaleString('uk-UA')} кВт·год`; } return null; } } }
+      },
+      scales: {
+        x: { ticks: { color: '#475569', font: { size: 11, weight: '500' } }, grid: { color: '#E2E8F0' }, stacked: true },
+        y: { stacked: true, ticks: { color: '#475569', font: { size: 11 }, callback: v => v.toLocaleString('uk-UA') + ' кВт·год' }, grid: { color: '#E2E8F0' }, title: { display: true, text: 'Електроенергія, кВт·год', color: '#64748B', font: { size: 12 } } }
+      }
+    }
+  });
+}
+
+function updateChartCashflow(capex, cf1, growth) {
+  const ctx = document.getElementById('chartCashflow').getContext('2d');
+  let cum = -capex;
+  const data = [cum];
+  const labels = ['0'];
+  
+  for (let y = 1; y <= 25; y++) {
+    cum += cf1 * Math.pow(1 + growth, y);
+    data.push(Math.round(cum));
+    labels.push('' + y);
+  }
+  
+  const negativeData = data.map(v => v < 0 ? v : 0);
+  const positiveData = data.map(v => v >= 0 ? v : 0);
+  
+  let paybackYear = null;
+  for (let i = 0; i < data.length - 1; i++) {
+    if (data[i] < 0 && data[i + 1] >= 0) {
+      paybackYear = i + 1;
+      break;
+    }
+  }
+  
+  if (charts.cashflow) charts.cashflow.destroy();
+  
+  charts.cashflow = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Збитки (від\'ємний потік)',
+          data: negativeData,
+          borderColor: '#EF4444',
+          backgroundColor: 'rgba(239,68,68,0.1)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          segment: { borderColor: (ctx) => { const value = ctx.p0.parsed.y; return value < 0 ? '#EF4444' : 'transparent'; } }
+        },
+        {
+          label: 'Прибуток (додатний потік)',
+          data: positiveData,
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16,185,129,0.15)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          segment: { borderColor: (ctx) => { const value = ctx.p0.parsed.y; return value >= 0 ? '#10B981' : 'transparent'; } }
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { color: '#475569', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 10, usePointStyle: true } },
+        tooltip: { callbacks: { label: (ctx) => { let val = ctx.raw; let label = ctx.dataset.label || ''; if (val === 0) return null; return `${label}: ${val.toLocaleString('uk-UA')} ₴`; } } }
+      },
+      scales: {
+        x: { ticks: { color: '#475569', font: { size: 11, weight: '500' } }, grid: { color: '#E2E8F0' }, title: { display: true, text: 'Рік', color: '#64748B', font: { size: 12 } } },
+        y: { ticks: { color: '#475569', font: { size: 11 }, callback: v => { if (v === 0) return '0 ₴'; return (v / 1000).toFixed(0) + 'k ₴'; } }, grid: { color: '#E2E8F0' }, title: { display: true, text: 'Накопичений грошовий потік, ₴', color: '#64748B', font: { size: 12 } } }
+      }
+    },
+    plugins: [{
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea } = chart;
+        if (!paybackYear) return;
+        ctx.save();
+        const x = chart.scales.x.getPixelForValue(paybackYear);
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.strokeStyle = '#F59E0B';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#F59E0B';
+        ctx.font = 'bold 10px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`💰 Окупність: ${paybackYear} р.`, x, chartArea.top - 5);
+        ctx.restore();
+      }
+    }]
+  });
+}
+function updateChartCapex(cBase, cCable, cBESS, cTrans, cOther) {
+  const ctx = document.getElementById('chartCapex').getContext('2d');
+  const labels = ['СЕС','Кабель','BESS','Трансформатор','Проєкт+Резерв'];
+  if (charts.capex) charts.capex.destroy();
+  charts.capex = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: [cBase, cCable, cBESS, cTrans, cOther], backgroundColor: ['#F59E0B','#3B82F6','#10B981','#8B5CF6','#94A3B8'], borderWidth: 0, hoverOffset: 6 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'right', labels: { font:{size:10}, boxWidth:10, padding:8 } } } } });
+}
+
+function updateReport() {
+  const R = state.R;
+  document.getElementById('rp-date').textContent = new Date().toLocaleDateString('uk-UA');
+  document.getElementById('rp-object-name').textContent = 'Об\'єкт: ' + (document.getElementById('objName').value||'—') + (document.getElementById('objCity').value ? ' · ' + document.getElementById('objCity').value : '');
+  document.getElementById('rp-r-obj').textContent = document.getElementById('objName').value || '—';
+  const regSel = document.getElementById('region');
+  document.getElementById('rp-r-region').textContent = (regSel.options[regSel.selectedIndex]?.text||'—') + ' / PSH ' + getPSH() + ' год/день';
+  document.getElementById('rp-r-cons').textContent = fmtN(R.annual,0) + ' кВт·год/рік · ' + fmtN(R.tariff,2) + ' ₴/кВт·год';
+  document.getElementById('rp-r-placement').textContent = R.placementName || '—';
+  if (R.power) document.getElementById('rp-power').innerHTML = fmtN(R.power,1)+'<span class="rp-unit"> кВп</span>';
+  if (R.annualGen) document.getElementById('rp-gen').innerHTML = fmtN(R.annualGen,0)+'<span class="rp-unit"> кВт·год/рік</span>';
+  if (R.saving1) document.getElementById('rp-saving').innerHTML = fmtC(R.saving1)+'/рік';
+  if (R.capex) document.getElementById('rp-capex').textContent = fmtC(R.capex);
+  if (R.payback) document.getElementById('rp-payback').innerHTML = isFinite(R.payback)?R.payback.toFixed(1)+'<span class="rp-unit"> р.</span>':'—';
+  if (R.npv) document.getElementById('rp-npv').textContent = fmtC(R.npv);
+  if (R.capex) document.getElementById('rp-f-capex').textContent = fmtC(R.capex);
+  if (R.irr) document.getElementById('rp-f-irr').textContent = (R.irr||0).toFixed(1)+'% / '+(R.lcoe||0).toFixed(2)+' ₴/кВт·год';
+  if (R.coverage) document.getElementById('rp-f-cover').textContent = (R.coverage||0).toFixed(1)+'%';
+  const leadInfo = [document.getElementById('leadName').value, document.getElementById('leadCompany').value].filter(Boolean).join(' · ');
+  document.getElementById('rp-lead-info').textContent = leadInfo ? 'Підготовлено для: '+leadInfo : '';
+}
+  // Функція для оновлення графіків у звіті перед PDF
+function updateReportCharts() {
+  const R = state.R;
+  if (!R.annualGen) return;
+  
+  const ctxMonthly = document.getElementById('rp-chart-monthly');
+  if (ctxMonthly) {
+    const seasonSum = CONFIG.solar.seasonality.reduce((a,b)=>a+b,0);
+    const mGen = CONFIG.solar.seasonality.map(k => Math.round(R.annualGen / 12 * k / (seasonSum / 12)));
+    const mCons = Array(12).fill(Math.round(R.annual / 12));
+    const used = mGen.map((g,i) => Math.min(g, mCons[i]));
+    const grid = mCons.map((c,i) => Math.max(0, c - mGen[i]));
+    const surplus = mGen.map((g,i) => Math.max(0, g - mCons[i]));
+    
+    if (window.rpMonthlyChart) window.rpMonthlyChart.destroy();
+    window.rpMonthlyChart = new Chart(ctxMonthly, {
+      type: 'bar',
+      data: {
+        labels: MONTHS,
+        datasets: [
+          { label: 'Генерація СЕС', data: used, backgroundColor: '#F59E0B', borderRadius: 4, stack: 'e' },
+          { label: 'Споживання з мережі', data: grid, backgroundColor: '#10B981', borderRadius: 4, stack: 'e' },
+          { label: 'Надлишок', data: surplus, backgroundColor: '#EF4444', borderRadius: 4, stack: 'e' }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 } } } } }
+    });
+  }
+  
+    const ctxCashflow = document.getElementById('rp-chart-cashflow');
+  if (ctxCashflow) {
+    let cum = -R.capex;
+    const data = [cum];
+    const labels = ['0'];
+    for (let y = 1; y <= 25; y++) {
+      cum += (R.saving1 - (R.capex * CONFIG.finance.opex_pct)) * Math.pow(1 + parseFloat(document.getElementById('tariffGrowth').value) || 0, y);
+      data.push(Math.round(cum));
+      labels.push('' + y);
+    }
+    
+    // Знаходимо рік окупності
+    let paybackYear = null;
+    for (let i = 0; i < data.length - 1; i++) {
+      if (data[i] < 0 && data[i + 1] >= 0) {
+        paybackYear = i + 1;
+        break;
+      }
+    }
+    
+    if (window.rpCashflowChart) window.rpCashflowChart.destroy();
+    window.rpCashflowChart = new Chart(ctxCashflow, {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Накопичений потік', data, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.35, borderWidth: 2 }] },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: true, 
+        plugins: { 
+          legend: { position: 'top', labels: { font: { size: 9 } } },
+          tooltip: { callbacks: { label: (ctx) => { return `${ctx.dataset.label}: ${ctx.raw.toLocaleString('uk-UA')} ₴`; } } }
+        }
+      },
+      plugins: [{
+        afterDatasetsDraw(chart) {
+          if (!paybackYear) return;
+          const { ctx, chartArea, scales } = chart;
+          ctx.save();
+          const x = scales.x.getPixelForValue(paybackYear);
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 6]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#F59E0B';
+          ctx.font = 'bold 9px "Inter", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(`Окупність: ${paybackYear} р.`, x, chartArea.top - 5);
+          ctx.restore();
+        }
+      }]
+    });
+  }
+  
+  //const ctxCapex = document.getElementById('rp-chart-capex');
+  //if (ctxCapex) {
+    //const cBase = parseFloat(document.getElementById('c-base').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cCable = parseFloat(document.getElementById('c-cable').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cBESS = parseFloat(document.getElementById('c-bess').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cTrans = parseFloat(document.getElementById('c-transformer').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cDesign = parseFloat(document.getElementById('c-design').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    //const cCont = parseFloat(document.getElementById('c-contingency').innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    
+    //if (window.rpCapexChart) window.rpCapexChart.destroy();
+    //window.rpCapexChart = new Chart(ctxCapex, {
+     // type: 'doughnut',
+     // data: { labels: ['СЕС', 'Кабель', 'BESS', 'Трансформатор', 'Інше'], datasets: [{ data: [cBase, cCable, cBESS, cTrans, cDesign + cCont], backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#94A3B8'], borderWidth: 0 }] },
+     // options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 9 } } } } }
+   // });
+ // }
+}
+function selectScenario(i) { state.selectedScenario = i; document.querySelectorAll('.scenario-card').forEach((c,j) => c.classList.toggle('selected', j===i)); }
+
+async function generatePDF() {
+  const btn = event.target;
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '⏳ Генерація...';
+  btn.disabled = true;
+  
+  // Показуємо індикатор завантаження
+  let loader = document.getElementById('pdfLoader');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'pdfLoader';
+    loader.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;color:white;font-size:18px;flex-direction:column;gap:16px;';
+    loader.innerHTML = '<div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.2);border-top-color:#F59E0B;border-radius:50%;animation:spin 0.8s linear infinite;"></div><div id="pdfLoaderText">Підготовка звіту...</div>';
+    document.body.appendChild(loader);
+    
+    if (!document.querySelector('#pdfLoaderStyle')) {
+      const style = document.createElement('style');
+      style.id = 'pdfLoaderStyle';
+      style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+      document.head.appendChild(style);
+    }
+  }
+  loader.style.display = 'flex';
+  const loaderText = document.getElementById('pdfLoaderText');
+  
+  try {
+    loaderText.textContent = 'Оновлення даних...';
+    recalcAll();
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    loaderText.textContent = 'Підготовка графіків...';
+    updateReportCharts();
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    loaderText.textContent = 'Формування PDF документа...';
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = 210;
+    let y = 20;
+    
+    // ========== ОТРИМУЄМО ДАНІ ==========
+    const objName = document.getElementById('objName').value || 'Не вказано';
+    const city = document.getElementById('objCity').value || '';
+    const clientName = document.getElementById('leadName').value || '';
+    const clientCompany = document.getElementById('leadCompany').value || '';
+    const tariff = parseFloat(document.getElementById('tariff').value) || 4.32;
+    const consumption = parseFloat(document.getElementById('annualConsumption').value) || 0;
+    const power = state.R.power || 0;
+    const annualGen = state.R.annualGen || 0;
+    const capex = state.R.capex || 0;
+    const savings = state.R.saving1 || 0;
+    const payback = state.R.payback || 0;
+    const npv = state.R.npv || 0;
+    const irr = state.R.irr || 0;
+    const lcoe = state.R.lcoe || 0;
+    const coverage = state.R.coverage || 0;
+    const psh = state.R.psh || 4.0;
+    const placementName = state.R.placementName || '—';
+    const orient = state.orient || 'S';
+    const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
+    const growth = 1 + tariffGrowth;
+    
+    // ========== СТОРІНКА 1: ТИТУЛЬНА ==========
+    doc.setFontSize(22);
+    doc.setTextColor(245, 158, 11);
+    doc.text("ПОПЕРЕДНІЙ РОЗРАХУНОК", pageWidth/2, y, { align: 'center' });
+    y += 12;
+    doc.setFontSize(18);
+    doc.text("СОНЯЧНОЇ ЕЛЕКТРОСТАНЦІЇ", pageWidth/2, y, { align: 'center' });
+    y += 20;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Об'єкт: ${objName}`, pageWidth/2, y, { align: 'center' });
+    y += 10;
+    if (city) doc.text(`Місто: ${city}`, pageWidth/2, y, { align: 'center' });
+    y += 10;
+    if (clientName) doc.text(`Клієнт: ${clientName}`, pageWidth/2, y, { align: 'center' });
+    y += 8;
+    if (clientCompany) doc.text(clientCompany, pageWidth/2, y, { align: 'center' });
+    y += 15;
+    doc.text(`Дата: ${new Date().toLocaleDateString('uk-UA')}`, pageWidth/2, y, { align: 'center' });
+    y += 20;
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text("СЕС Калькулятор | Попередній техніко-економічний розрахунок", pageWidth/2, y, { align: 'center' });
+    
+    // ========== СТОРІНКА 2: КЛЮЧОВІ ПОКАЗНИКИ ==========
+    doc.addPage();
+    y = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(245, 158, 11);
+    doc.text("КЛЮЧОВІ ПОКАЗНИКИ ПРОЄКТУ", pageWidth/2, y, { align: 'center' });
+    y = 40;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    const metrics = [
+      ["Потужність СЕС:", `${power.toFixed(1)} кВп`, "Річне споживання:", `${Math.round(consumption).toLocaleString()} кВт·год`],
+      ["Річна генерація:", `${Math.round(annualGen).toLocaleString()} кВт·год`, "Тариф:", `${tariff.toFixed(2)} грн/кВт·год`],
+      ["CAPEX:", `${(capex/1000).toFixed(0)} тис. грн`, "PSH:", `${psh.toFixed(1)} год/день`],
+      ["Економія/рік:", `${Math.round(savings).toLocaleString()} грн`, "Покриття:", `${coverage.toFixed(1)}%`],
+      ["Окупність:", `${payback.toFixed(1)} років`, "Тип розміщення:", placementName],
+      ["NPV (25р):", `${(npv/1000).toFixed(0)} тис. грн`, "IRR:", `${irr.toFixed(1)}%`],
+      ["LCOE:", `${lcoe.toFixed(2)} грн/кВт·год`, "Орієнтація:", orient]
+    ];
+    
+    metrics.forEach((m, i) => {
+      let rowY = 40 + i * 9;
+      doc.setFont('helvetica', 'bold');
+      doc.text(m[0], 20, rowY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(m[1], 65, rowY);
+      doc.setFont('helvetica', 'bold');
+      doc.text(m[2], 110, rowY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(m[3], 155, rowY);
+    });
+    
+    // ========== СТОРІНКА 3: ГРАФІК ГЕНЕРАЦІЇ ==========
+    doc.addPage();
+    y = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(245, 158, 11);
+    doc.text("МІСЯЧНА ГЕНЕРАЦІЯ ЕЛЕКТРОЕНЕРГІЇ", pageWidth/2, y, { align: 'center' });
+    
+    // Отримуємо графік зі сторінки (використовуємо оригінальний canvas)
+    const chartCanvas = document.getElementById('chartMonthly');
+    if (chartCanvas) {
+      try {
+        const chartImage = chartCanvas.toDataURL('image/png');
+        doc.addImage(chartImage, 'PNG', 15, y + 15, 180, 100);
+        y += 130;
+      } catch(e) { console.warn('Помилка додавання графіка:', e); }
+    }
+    
+    // Таблиця місячної генерації
+    const seasonality = [0.45,0.58,0.82,1.05,1.20,1.28,1.25,1.18,0.98,0.70,0.48,0.38];
+    const seasonSum = seasonality.reduce((a,b)=>a+b,0);
+    const monthlyGen = seasonality.map(k => Math.round(annualGen / 12 * k / (seasonSum/12)));
+    const months = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
+    
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    doc.text("Детальна місячна генерація (кВт·год):", 20, y); y += 6;
+    
+    let row1 = '', row2 = '', val1 = '', val2 = '';
+    for(let i=0; i<6; i++) { 
+      row1 += months[i] + '      '; 
+      val1 += monthlyGen[i].toLocaleString() + '   '; 
+    }
+    for(let i=6; i<12; i++) { 
+      row2 += months[i] + '      '; 
+      val2 += monthlyGen[i].toLocaleString() + '   '; 
+    }
+    
+    doc.text(row1, 20, y); y += 5;
+    doc.text(val1, 20, y); y += 8;
+    doc.text(row2, 20, y); y += 5;
+    doc.text(val2, 20, y);
+    
+    y += 10;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`* Річна генерація: ${Math.round(annualGen).toLocaleString()} кВт·год`, 20, y);
+    
+    // ========== СТОРІНКА 4: ФІНАНСОВИЙ АНАЛІЗ ==========
+    doc.addPage();
+    y = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(245, 158, 11);
+    doc.text("ФІНАНСОВИЙ АНАЛІЗ", pageWidth/2, y, { align: 'center' });
+    y = 45;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`CAPEX (інвестиції): ${Math.round(capex).toLocaleString()} грн`, 20, y); y += 8;
+    doc.text(`OPEX (щорічні витрати на обслуговування): ${Math.round(capex * 0.013).toLocaleString()} грн`, 20, y); y += 8;
+    doc.text(`Чиста річна економія: ${Math.round(savings).toLocaleString()} грн`, 20, y); y += 8;
+    doc.text(`Простий строк окупності: ${payback.toFixed(1)} років`, 20, y); y += 8;
+    doc.text(`NPV за 25 років (при ставці 10%): ${Math.round(npv).toLocaleString()} грн`, 20, y); y += 8;
+    doc.text(`IRR (внутрішня норма дохідності): ${irr.toFixed(1)}%`, 20, y); y += 8;
+    doc.text(`LCOE (собівартість 1 кВт·год): ${lcoe.toFixed(2)} грн/кВт·год`, 20, y); y += 15;
+    
+    // Графік грошового потоку
+    const cfCanvas = document.getElementById('chartCashflow');
+    if (cfCanvas) {
+      try {
+        const cfImage = cfCanvas.toDataURL('image/png');
+        doc.addImage(cfImage, 'PNG', 15, y, 180, 70);
+        y += 80;
+      } catch(e) { console.warn('Помилка додавання графіка cashflow:', e); }
+    }
+    
+    // Додаємо графік структури CAPEX
+    const capexCanvas = document.getElementById('chartCapex');
+    if (capexCanvas) {
+      try {
+        const capexImage = capexCanvas.toDataURL('image/png');
+        doc.addImage(capexImage, 'PNG', 65, y, 80, 80);
+        y += 90;
+      } catch(e) { console.warn('Помилка додавання графіка CAPEX:', e); }
+    }
+    
+    // ========== СТОРІНКА 5: ПОРІВНЯННЯ З/БЕЗ СЕС ==========
+    doc.addPage();
+    y = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(245, 158, 11);
+    doc.text("ПОРІВНЯННЯ: З СЕС vs БЕЗ СЕС", pageWidth/2, y, { align: 'center' });
+    y = 45;
+    
+    // Розрахунок витрат без СЕС
+    let costWithout = 0;
+    for(let yc = 1; yc <= 25; yc++) {
+      costWithout += consumption * tariff * Math.pow(growth, yc-1);
+    }
+    let costWith = capex + (capex * 0.013 * 25);
+    let netBenefit = costWithout - costWith;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Загальні витрати на електроенергію за 25 років:", 20, y); y += 6;
+    doc.text(`  • Без СЕС: ${Math.round(costWithout).toLocaleString()} грн`, 25, y); y += 6;
+    doc.text(`  • З СЕС: ${Math.round(costWith).toLocaleString()} грн`, 25, y); y += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(16, 185, 129);
+    doc.text(`Чиста вигода від впровадження СЕС: + ${Math.round(netBenefit).toLocaleString()} грн`, 20, y+5); y += 15;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Впровадження сонячної електростанції дозволить заощадити`, 20, y); y += 6;
+    doc.text(`${Math.round(netBenefit/1000).toLocaleString()} тис. грн протягом 25 років експлуатації.`, 20, y); y += 6;
+    doc.text(`Строк окупності інвестиції складає ${payback.toFixed(1)} років.`, 20, y);
+    
+    // ========== СТОРІНКА 6: ПОРІВНЯННЯ СЦЕНАРІЇВ ==========
+    doc.addPage();
+    y = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(245, 158, 11);
+    doc.text("ПОРІВНЯННЯ СЦЕНАРІЇВ ВПРОВАДЖЕННЯ", pageWidth/2, y, { align: 'center' });
+    y = 45;
+    
+    const scenarios = [
+      "1. On-grid з обмеженням видачі - мінімальний CAPEX, найпростіше рішення",
+      "2. On-grid з продажем у мережу - додатковий дохід від надлишку електроенергії",
+      "3. СЕС + Батарея (BESS) - автономність до 4 годин, енергонезалежність",
+      "4. СЕС + Дизельний генератор - економія пального до 50%",
+      "5. СЕС + ДГ + Батарея (Комбо) - максимальна надійність, 24/7 резервування"
+    ];
+    
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    scenarios.forEach((s, i) => {
+      doc.text(s, 20, y + i * 8);
+    });
+    
+    y += 55;
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Рекомендація:", 20, y); y += 6;
+    if (payback < 6) {
+      doc.text("✅ Проєкт має відмінні фінансові показники. Рекомендується до реалізації.", 25, y);
+    } else if (payback < 9) {
+      doc.text("📊 Проєкт має добрі показники. Рекомендується розгляд з урахуванням зелених тарифів.", 25, y);
+    } else {
+      doc.text("⚠️ Строк окупності перевищує 9 років. Рекомендується оптимізація CAPEX або розгляд гібридного рішення.", 25, y);
+    }
+    
+    // ========== СТОРІНКА 7: CTA ТА ДИСКЛЕЙМЕР ==========
+    doc.addPage();
+    y = 40;
+    doc.setFontSize(16);
+    doc.setTextColor(245, 158, 11);
+    doc.text("НАСТУПНІ КРОКИ", pageWidth/2, y, { align: 'center' });
+    y += 20;
+    
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Для отримання точної комерційної пропозиції:", 20, y); y += 10;
+    
+    doc.setFontSize(10);
+    doc.text("1️⃣ Замовте виїзне обстеження об'єкта", 25, y); y += 8;
+    doc.text("2️⃣ Отримайте детальний техніко-економічний розрахунок", 25, y); y += 8;
+    doc.text("3️⃣ Розрахуйте варіанти фінансування / енергосервісу", 25, y); y += 8;
+    doc.text("4️⃣ Підпишіть договір та розпочніть монтаж", 25, y); y += 15;
+    
+    y += 15;
+    doc.setFontSize(10);
+    doc.setTextColor(245, 158, 11);
+    doc.text("КОНТАКТИ", pageWidth/2, y, { align: 'center' });
+    y += 10;
+    doc.setTextColor(80, 80, 80);
+    doc.text("📞 +38 044 XXX XX XX", pageWidth/2, y, { align: 'center' }); y += 7;
+    doc.text("✉️ info@ses-calculator.com.ua", pageWidth/2, y, { align: 'center' }); y += 7;
+    doc.text("🌐 www.ses-calculator.com.ua", pageWidth/2, y, { align: 'center' }); y += 15;
+    
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Дисклеймер: Розрахунок є попереднім та орієнтовним і не є комерційною пропозицією.", pageWidth/2, y, { align: 'center' });
+    doc.text("Точні технічні та фінансові параметри визначаються після виїзного обстеження об'єкта.", pageWidth/2, y+5, { align: 'center' });
+    doc.text("Похибка розрахунку може становити ±15-25%.", pageWidth/2, y+10, { align: 'center' });
+    
+    // Збереження PDF
+    const filename = `SES_Report_${objName.replace(/[^a-zA-Zа-яА-ЯіїєґІЇЄҐ0-9]/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(filename);
+    
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    alert('Помилка при генерації PDF: ' + error.message);
+  } finally {
+    loader.style.display = 'none';
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+  
+function saveData() { try { localStorage.setItem('sesCalcData', JSON.stringify({ annualConsumption: document.getElementById('annualConsumption').value, tariff: document.getElementById('tariff').value, region: document.getElementById('region').value, placement: state.placement, availArea: document.getElementById('availArea').value, panelWatt: document.getElementById('panelWatt').value, orient: state.orient, orientCoeff: state.orientCoeff, tariffGrowth: document.getElementById('tariffGrowth').value, objName: document.getElementById('objName').value, objCity: document.getElementById('objCity').value, dgOn: state.dgOn, bessOn: state.bessOn, bessKwh: document.getElementById('bessKwh').value, dgPower: document.getElementById('dgPower').value, cableLen: document.getElementById('cableLen').value })); } catch(e) {} }
+function restoreData() { try { const raw = localStorage.getItem('sesCalcData'); if (!raw) return; const d = JSON.parse(raw); if (d.annualConsumption) document.getElementById('annualConsumption').value = d.annualConsumption; if (d.tariff) document.getElementById('tariff').value = d.tariff; if (d.availArea) document.getElementById('availArea').value = d.availArea; if (d.panelWatt) document.getElementById('panelWatt').value = d.panelWatt; if (d.tariffGrowth) document.getElementById('tariffGrowth').value = d.tariffGrowth; if (d.objName) document.getElementById('objName').value = d.objName; if (d.objCity) document.getElementById('objCity').value = d.objCity; if (d.bessKwh) document.getElementById('bessKwh').value = d.bessKwh; if (d.dgPower) document.getElementById('dgPower').value = d.dgPower; if (d.cableLen) document.getElementById('cableLen').value = d.cableLen; if (d.region) { document.getElementById('region').value = d.region; regionChange(); } if (d.placement) { const cards = document.querySelectorAll('.placement-card'); const keys = ['flatRoof','slopedRoof','ground','facade','carport']; const idx = keys.indexOf(d.placement); if (idx >= 0) setPlacement(d.placement, cards[idx]); } if (d.orient && d.orientCoeff) { state.orient = d.orient; state.orientCoeff = d.orientCoeff; document.querySelectorAll('.orient-btn').forEach(b => { const match = b.textContent.includes(d.orient) || (d.orient==='S' && b.textContent.includes('Південь') && !b.textContent.includes('Захід') && !b.textContent.includes('Схід')); b.classList.toggle('active', match); }); } if (d.dgOn) toggleDG(); if (d.bessOn) toggleBESS(); } catch(e) {} closeModal(); debouncedRecalc(); }
+function closeModal() { document.getElementById('restoreModal').style.display = 'none'; }
+function resetAll() { if (confirm('Скинути всі налаштування?')) { localStorage.removeItem('sesCalcData'); location.reload(); } }
+function shareCalc() { const url = window.location.href.split('#')[0]; navigator.clipboard.writeText(url).then(() => alert('Посилання скопійовано!')).catch(() => prompt('Скопіюйте:', url)); }
+
+window.addEventListener('load', () => { if (localStorage.getItem('sesCalcData')) document.getElementById('restoreModal').style.display = 'flex'; else debouncedRecalc(); });
+</script>
+</body>
+</html>
