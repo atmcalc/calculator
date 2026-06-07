@@ -1297,7 +1297,7 @@ function updateReport() {
   if (el('rp-lead-info')) el('rp-lead-info').textContent = leadInfo ? (currentLang === 'uk' ? 'Підготовлено для: ' : 'Prepared for: ')+leadInfo : '';
 }
 
-// ========== PDF ГЕНЕРАЦІЯ ==========
+// ========== PDF ГЕНЕРАЦІЯ (оновлена) ==========
 async function generatePDF() {
   const btn = event.target;
   const originalText = btn.innerHTML;
@@ -1306,12 +1306,46 @@ async function generatePDF() {
   
   const loader = document.createElement('div');
   loader.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;color:white;font-size:16px;flex-direction:column;gap:16px;';
-  loader.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:#F59E0B;border-radius:50%;animation:spin 0.8s linear infinite;"></div><div>' + (currentLang === 'uk' ? 'Формування PDF...' : 'Generating PDF...') + '</div>';
+  loader.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:#F59E0B;border-radius:50%;animation:spin 0.8s linear infinite;"></div><div>' + (currentLang === 'uk' ? 'Формування PDF...' : 'Generating PDF...') + '</div><div id="pdfProgress" style="font-size:12px;color:#ccc;">' + (currentLang === 'uk' ? 'Оновлення даних...' : 'Updating data...') + '</div>';
   document.body.appendChild(loader);
+  const progressEl = document.getElementById('pdfProgress');
   
   try {
+    // Крок 1: Оновлення даних
+    if (progressEl) progressEl.textContent = currentLang === 'uk' ? 'Оновлення даних...' : 'Updating data...';
     recalcAll();
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 500));
+    
+    // Крок 2: Примусове оновлення всіх графіків
+    if (progressEl) progressEl.textContent = currentLang === 'uk' ? 'Оновлення графіків...' : 'Updating charts...';
+    
+    // Оновлюємо місячний графік
+    if (state.R && state.R.annualGen) {
+      updateChartMonthly(state.R.annualGen, state.R.annual);
+    }
+    
+    // Оновлюємо графік грошового потоку
+    const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
+    const saving1 = state.R?.saving1 || 0;
+    const capex = state.R?.capex || 0;
+    const opex = capex * 0.013;
+    const netCF1 = saving1 - opex;
+    updateChartCashflow(capex, netCF1, tariffGrowth);
+    
+    // Оновлюємо кругову діаграму CAPEX
+    const cBase = parseFloat(document.getElementById('c-base')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cCable = parseFloat(document.getElementById('c-cable')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cBESS = parseFloat(document.getElementById('c-bess')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cTransformer = parseFloat(document.getElementById('c-transformer')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cDesign = parseFloat(document.getElementById('c-design')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    const cContingency = parseFloat(document.getElementById('c-contingency')?.innerHTML.replace(/[^0-9.-]/g, '')) || 0;
+    updateChartCapex(cBase, cCable, cBESS, cTransformer, cDesign + cContingency);
+    
+    // Додаткова затримка для рендерингу графіків
+    await new Promise(r => setTimeout(r, 800));
+    
+    // Крок 3: Клонування графіків для PDF
+    if (progressEl) progressEl.textContent = currentLang === 'uk' ? 'Підготовка графіків...' : 'Preparing charts...';
     
     const chartMonthly = document.getElementById('chartMonthly');
     const chartCashflow = document.getElementById('chartCashflow');
@@ -1327,6 +1361,7 @@ async function generatePDF() {
       ctx.drawImage(chartMonthly, 0, 0, canvas.width, canvas.height);
       monthlyImg = canvas.toDataURL('image/jpeg', 0.6);
     }
+    
     if (chartCashflow) {
       const canvas = document.createElement('canvas');
       canvas.width = 320; canvas.height = 150;
@@ -1336,12 +1371,15 @@ async function generatePDF() {
       ctx.drawImage(chartCashflow, 0, 0, canvas.width, canvas.height);
       cashflowImg = canvas.toDataURL('image/jpeg', 0.6);
     }
+    
     if (chartCapex) {
       const canvas = document.createElement('canvas');
       canvas.width = 260; canvas.height = 160;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Чекаємо трохи для коректного рендерингу кругової діаграми
+      await new Promise(r => setTimeout(r, 200));
       ctx.drawImage(chartCapex, 0, 0, canvas.width, canvas.height);
       capexImg = canvas.toDataURL('image/jpeg', 0.6);
     }
@@ -1349,6 +1387,9 @@ async function generatePDF() {
     const objName = document.getElementById('objName').value || (currentLang === 'uk' ? 'Об\'єкт' : 'Object');
     const R = state.R;
     const t = translations[currentLang];
+    
+    // Крок 4: Створення PDF
+    if (progressEl) progressEl.textContent = currentLang === 'uk' ? 'Створення PDF...' : 'Creating PDF...';
     
     const container = document.createElement('div');
     container.style.cssText = 'position:absolute;top:-9999px;left:0;width:700px;background:white;padding:15px 20px;font-family:"Inter",sans-serif;';
@@ -1371,8 +1412,21 @@ async function generatePDF() {
     `;
     
     document.body.appendChild(container);
-    const canvas = await html2canvas(container, { scale: 1.6, backgroundColor: '#fff' });
+    
+    // Додаткова затримка перед рендерингом
+    await new Promise(r => setTimeout(r, 300));
+    
+    if (progressEl) progressEl.textContent = currentLang === 'uk' ? 'Рендеринг PDF...' : 'Rendering PDF...';
+    
+    const canvas = await html2canvas(container, { 
+      scale: 1.6, 
+      backgroundColor: '#fff',
+      logging: false,
+      useCORS: true
+    });
     document.body.removeChild(container);
+    
+    if (progressEl) progressEl.textContent = currentLang === 'uk' ? 'Збереження файлу...' : 'Saving file...';
     
     const imgData = canvas.toDataURL('image/jpeg', 0.85);
     const { jsPDF } = window.jspdf;
@@ -1381,8 +1435,15 @@ async function generatePDF() {
     doc.addImage(imgData, 'JPEG', 0, 0, 210, Math.min(imgHeight, 297), undefined, 'FAST');
     doc.save(`SES_Report_${objName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
     
-  } catch (err) { console.error(err); alert((currentLang === 'uk' ? 'Помилка: ' : 'Error: ') + err.message); }
-  finally { loader.remove(); btn.innerHTML = originalText; btn.disabled = false; }
+  } catch (err) { 
+    console.error(err); 
+    alert((currentLang === 'uk' ? 'Помилка: ' : 'Error: ') + err.message); 
+  }
+  finally { 
+    loader.remove(); 
+    btn.innerHTML = originalText; 
+    btn.disabled = false; 
+  }
 }
 
 // ========== ЗБЕРЕЖЕННЯ ТА ВІДНОВЛЕННЯ ==========
