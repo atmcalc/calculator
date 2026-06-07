@@ -1139,15 +1139,14 @@ async function generatePDF() {
   btn.innerHTML = '⏳ Генерація...';
   btn.disabled = true;
   
-  // Показуємо індикатор завантаження
+  // Індикатор завантаження
   let loader = document.getElementById('pdfLoader');
   if (!loader) {
     loader = document.createElement('div');
     loader.id = 'pdfLoader';
-    loader.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;color:white;font-size:18px;flex-direction:column;gap:16px;';
-    loader.innerHTML = '<div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.2);border-top-color:#F59E0B;border-radius:50%;animation:spin 0.8s linear infinite;"></div><div id="pdfLoaderText">Підготовка звіту...</div>';
+    loader.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;color:white;font-size:16px;flex-direction:column;gap:16px;';
+    loader.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:#F59E0B;border-radius:50%;animation:spin 0.8s linear infinite;"></div><div>Формування PDF...</div>';
     document.body.appendChild(loader);
-    
     if (!document.querySelector('#pdfLoaderStyle')) {
       const style = document.createElement('style');
       style.id = 'pdfLoaderStyle';
@@ -1156,18 +1155,11 @@ async function generatePDF() {
     }
   }
   loader.style.display = 'flex';
-  const loaderText = document.getElementById('pdfLoaderText');
   
   try {
-    loaderText.textContent = 'Оновлення даних...';
+    // Оновлюємо дані
     recalcAll();
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    loaderText.textContent = 'Підготовка графіків...';
-    updateReportCharts();
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    loaderText.textContent = 'Формування PDF документа...';
+    await new Promise(r => setTimeout(r, 100));
     
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -1175,179 +1167,123 @@ async function generatePDF() {
     let y = 20;
     
     // ========== ОТРИМУЄМО ДАНІ ==========
-    const objName = document.getElementById('objName').value || 'Не вказано';
+    const objName = document.getElementById('objName').value || 'Об\'єкт';
     const city = document.getElementById('objCity').value || '';
     const clientName = document.getElementById('leadName').value || '';
-    const clientCompany = document.getElementById('leadCompany').value || '';
     const tariff = parseFloat(document.getElementById('tariff').value) || 4.32;
     const consumption = parseFloat(document.getElementById('annualConsumption').value) || 0;
-    const power = state.R.power || 0;
-    const annualGen = state.R.annualGen || 0;
-    const capex = state.R.capex || 0;
-    const savings = state.R.saving1 || 0;
-    const payback = state.R.payback || 0;
-    const npv = state.R.npv || 0;
-    const irr = state.R.irr || 0;
-    const lcoe = state.R.lcoe || 0;
-    const coverage = state.R.coverage || 0;
-    const psh = state.R.psh || 4.0;
-    const placementName = state.R.placementName || '—';
-    const orient = state.orient || 'S';
-    const tariffGrowth = parseFloat(document.getElementById('tariffGrowth').value) || 0.1;
-    const growth = 1 + tariffGrowth;
+    const power = state.R?.power || 0;
+    const annualGen = state.R?.annualGen || 0;
+    const capex = state.R?.capex || 0;
+    const savings = state.R?.saving1 || 0;
+    const payback = state.R?.payback || 0;
+    const npv = state.R?.npv || 0;
+    const irr = state.R?.irr || 0;
+    const lcoe = state.R?.lcoe || 0;
+    const coverage = state.R?.coverage || 0;
+    const placementName = state.R?.placementName || '—';
     
-    // ========== СТОРІНКА 1: ТИТУЛЬНА ==========
-    doc.setFontSize(22);
+    // ========== СТОРІНКА 1 ==========
+    // Заголовок
+    doc.setFontSize(18);
     doc.setTextColor(245, 158, 11);
     doc.text("ПОПЕРЕДНІЙ РОЗРАХУНОК", pageWidth/2, y, { align: 'center' });
-    y += 12;
-    doc.setFontSize(18);
+    y += 10;
+    doc.setFontSize(14);
     doc.text("СОНЯЧНОЇ ЕЛЕКТРОСТАНЦІЇ", pageWidth/2, y, { align: 'center' });
-    y += 20;
+    y += 15;
     
-    doc.setFontSize(12);
+    // Інформація про об'єкт
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.text(`Об'єкт: ${objName}`, pageWidth/2, y, { align: 'center' });
-    y += 10;
-    if (city) doc.text(`Місто: ${city}`, pageWidth/2, y, { align: 'center' });
-    y += 10;
+    y += 7;
+    if (city) doc.text(`м. ${city}`, pageWidth/2, y, { align: 'center' });
+    y += 7;
     if (clientName) doc.text(`Клієнт: ${clientName}`, pageWidth/2, y, { align: 'center' });
-    y += 8;
-    if (clientCompany) doc.text(clientCompany, pageWidth/2, y, { align: 'center' });
+    y += 12;
+    
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text(new Date().toLocaleDateString('uk-UA'), pageWidth/2, y, { align: 'center' });
     y += 15;
-    doc.text(`Дата: ${new Date().toLocaleDateString('uk-UA')}`, pageWidth/2, y, { align: 'center' });
-    y += 20;
+    
+    // Розділювач
+    doc.setDrawColor(245, 158, 11);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 10;
+    
+    // ========== ОСНОВНІ ПОКАЗНИКИ (таблиця) ==========
+    doc.setFontSize(11);
+    doc.setTextColor(245, 158, 11);
+    doc.text("ОСНОВНІ ПОКАЗНИКИ", pageWidth/2, y, { align: 'center' });
+    y += 10;
     
     doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text("СЕС Калькулятор | Попередній техніко-економічний розрахунок", pageWidth/2, y, { align: 'center' });
-    
-    // ========== СТОРІНКА 2: КЛЮЧОВІ ПОКАЗНИКИ ==========
-    doc.addPage();
-    y = 20;
-    doc.setFontSize(14);
-    doc.setTextColor(245, 158, 11);
-    doc.text("КЛЮЧОВІ ПОКАЗНИКИ ПРОЄКТУ", pageWidth/2, y, { align: 'center' });
-    y = 40;
-    
-    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
+    
+    // Таблиця 2 колонки
+    const leftCol = 25;
+    const rightCol = 120;
+    const rowHeight = 7;
+    
     const metrics = [
-      ["Потужність СЕС:", `${power.toFixed(1)} кВп`, "Річне споживання:", `${Math.round(consumption).toLocaleString()} кВт·год`],
-      ["Річна генерація:", `${Math.round(annualGen).toLocaleString()} кВт·год`, "Тариф:", `${tariff.toFixed(2)} грн/кВт·год`],
-      ["CAPEX:", `${(capex/1000).toFixed(0)} тис. грн`, "PSH:", `${psh.toFixed(1)} год/день`],
-      ["Економія/рік:", `${Math.round(savings).toLocaleString()} грн`, "Покриття:", `${coverage.toFixed(1)}%`],
-      ["Окупність:", `${payback.toFixed(1)} років`, "Тип розміщення:", placementName],
-      ["NPV (25р):", `${(npv/1000).toFixed(0)} тис. грн`, "IRR:", `${irr.toFixed(1)}%`],
-      ["LCOE:", `${lcoe.toFixed(2)} грн/кВт·год`, "Орієнтація:", orient]
+      ["Потужнiсть СЕС:", `${power.toFixed(1)} кВт`],
+      ["Рiчна генерацiя:", `${Math.round(annualGen).toLocaleString()} кВт·год`],
+      ["Покриття споживання:", `${coverage.toFixed(1)}%`],
+      ["CAPEX (iнвестицiї):", `${Math.round(capex/1000).toLocaleString()} тис. грн`],
+      ["Рiчна економiя:", `${Math.round(savings).toLocaleString()} грн`],
+      ["Строк окупностi:", `${payback.toFixed(1)} р.`],
+      ["NPV за 25 рокiв:", `${Math.round(npv/1000).toLocaleString()} тис. грн`],
+      ["IRR / LCOE:", `${irr.toFixed(1)}% / ${lcoe.toFixed(2)} грн/кВт·год`],
+      ["Тариф:", `${tariff.toFixed(2)} грн/кВт·год`],
+      ["Тип розмiщення:", placementName]
     ];
     
-    metrics.forEach((m, i) => {
-      let rowY = 40 + i * 9;
+    for (let i = 0; i < metrics.length; i++) {
+      let rowY = y + (i * rowHeight);
+      if (rowY > 270) break; // перехід на нову сторінку
+      
       doc.setFont('helvetica', 'bold');
-      doc.text(m[0], 20, rowY);
+      doc.text(metrics[i][0], leftCol, rowY);
       doc.setFont('helvetica', 'normal');
-      doc.text(m[1], 65, rowY);
+      doc.text(metrics[i][1], leftCol + 55, rowY);
+    }
+    
+    // Друга колонка (для показників з 5 по 8)
+    for (let i = 4; i < 8 && i < metrics.length; i++) {
+      let rowY = y + ((i-4) * rowHeight);
+      if (rowY > 270) break;
       doc.setFont('helvetica', 'bold');
-      doc.text(m[2], 110, rowY);
+      doc.text(metrics[i][0], rightCol, rowY);
       doc.setFont('helvetica', 'normal');
-      doc.text(m[3], 155, rowY);
-    });
+      doc.text(metrics[i][1], rightCol + 45, rowY);
+    }
     
-    // ========== СТОРІНКА 3: ГРАФІК ГЕНЕРАЦІЇ ==========
-    doc.addPage();
-    y = 20;
-    doc.setFontSize(14);
-    doc.setTextColor(245, 158, 11);
-    doc.text("МІСЯЧНА ГЕНЕРАЦІЯ ЕЛЕКТРОЕНЕРГІЇ", pageWidth/2, y, { align: 'center' });
+    y += 85;
     
-    // Отримуємо графік зі сторінки (використовуємо оригінальний canvas)
+    // ========== НЕВЕЛИКИЙ ГРАФІК (стиснутий) ==========
     const chartCanvas = document.getElementById('chartMonthly');
-    if (chartCanvas) {
+    if (chartCanvas && y < 250) {
       try {
-        const chartImage = chartCanvas.toDataURL('image/png');
-        doc.addImage(chartImage, 'PNG', 15, y + 15, 180, 100);
-        y += 130;
-      } catch(e) { console.warn('Помилка додавання графіка:', e); }
+        // Зменшуємо якість для меншого розміру
+        const chartImage = chartCanvas.toDataURL('image/jpeg', 0.5);
+        doc.addImage(chartImage, 'JPEG', 15, y, 180, 55, undefined, 'FAST');
+        y += 65;
+      } catch(e) { console.warn('Графік не додано'); }
     }
     
-    // Таблиця місячної генерації
-    const seasonality = [0.45,0.58,0.82,1.05,1.20,1.28,1.25,1.18,0.98,0.70,0.48,0.38];
-    const seasonSum = seasonality.reduce((a,b)=>a+b,0);
-    const monthlyGen = seasonality.map(k => Math.round(annualGen / 12 * k / (seasonSum/12)));
-    const months = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
-    
-    doc.setFontSize(8);
-    doc.setTextColor(80, 80, 80);
-    doc.text("Детальна місячна генерація (кВт·год):", 20, y); y += 6;
-    
-    let row1 = '', row2 = '', val1 = '', val2 = '';
-    for(let i=0; i<6; i++) { 
-      row1 += months[i] + '      '; 
-      val1 += monthlyGen[i].toLocaleString() + '   '; 
-    }
-    for(let i=6; i<12; i++) { 
-      row2 += months[i] + '      '; 
-      val2 += monthlyGen[i].toLocaleString() + '   '; 
+    // ========== СТОРІНКА 2 (якщо потрібно) ==========
+    if (y > 260) {
+      doc.addPage();
+      y = 20;
+    } else {
+      y += 10;
     }
     
-    doc.text(row1, 20, y); y += 5;
-    doc.text(val1, 20, y); y += 8;
-    doc.text(row2, 20, y); y += 5;
-    doc.text(val2, 20, y);
-    
-    y += 10;
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`* Річна генерація: ${Math.round(annualGen).toLocaleString()} кВт·год`, 20, y);
-    
-    // ========== СТОРІНКА 4: ФІНАНСОВИЙ АНАЛІЗ ==========
-    doc.addPage();
-    y = 20;
-    doc.setFontSize(14);
-    doc.setTextColor(245, 158, 11);
-    doc.text("ФІНАНСОВИЙ АНАЛІЗ", pageWidth/2, y, { align: 'center' });
-    y = 45;
-    
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`CAPEX (інвестиції): ${Math.round(capex).toLocaleString()} грн`, 20, y); y += 8;
-    doc.text(`OPEX (щорічні витрати на обслуговування): ${Math.round(capex * 0.013).toLocaleString()} грн`, 20, y); y += 8;
-    doc.text(`Чиста річна економія: ${Math.round(savings).toLocaleString()} грн`, 20, y); y += 8;
-    doc.text(`Простий строк окупності: ${payback.toFixed(1)} років`, 20, y); y += 8;
-    doc.text(`NPV за 25 років (при ставці 10%): ${Math.round(npv).toLocaleString()} грн`, 20, y); y += 8;
-    doc.text(`IRR (внутрішня норма дохідності): ${irr.toFixed(1)}%`, 20, y); y += 8;
-    doc.text(`LCOE (собівартість 1 кВт·год): ${lcoe.toFixed(2)} грн/кВт·год`, 20, y); y += 15;
-    
-    // Графік грошового потоку
-    const cfCanvas = document.getElementById('chartCashflow');
-    if (cfCanvas) {
-      try {
-        const cfImage = cfCanvas.toDataURL('image/png');
-        doc.addImage(cfImage, 'PNG', 15, y, 180, 70);
-        y += 80;
-      } catch(e) { console.warn('Помилка додавання графіка cashflow:', e); }
-    }
-    
-    // Додаємо графік структури CAPEX
-    const capexCanvas = document.getElementById('chartCapex');
-    if (capexCanvas) {
-      try {
-        const capexImage = capexCanvas.toDataURL('image/png');
-        doc.addImage(capexImage, 'PNG', 65, y, 80, 80);
-        y += 90;
-      } catch(e) { console.warn('Помилка додавання графіка CAPEX:', e); }
-    }
-    
-    // ========== СТОРІНКА 5: ПОРІВНЯННЯ З/БЕЗ СЕС ==========
-    doc.addPage();
-    y = 20;
-    doc.setFontSize(14);
-    doc.setTextColor(245, 158, 11);
-    doc.text("ПОРІВНЯННЯ: З СЕС vs БЕЗ СЕС", pageWidth/2, y, { align: 'center' });
-    y = 45;
-    
-    // Розрахунок витрат без СЕС
+    // ========== ВИСНОВОК ТА ЕКОНОМІЯ ==========
+    // Розрахунок вигоди за 25 років
+    const growth = 1 + (parseFloat(document.getElementById('tariffGrowth').value) || 0.1);
     let costWithout = 0;
     for(let yc = 1; yc <= 25; yc++) {
       costWithout += consumption * tariff * Math.pow(growth, yc-1);
@@ -1355,95 +1291,67 @@ async function generatePDF() {
     let costWith = capex + (capex * 0.013 * 25);
     let netBenefit = costWithout - costWith;
     
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Загальні витрати на електроенергію за 25 років:", 20, y); y += 6;
-    doc.text(`  • Без СЕС: ${Math.round(costWithout).toLocaleString()} грн`, 25, y); y += 6;
-    doc.text(`  • З СЕС: ${Math.round(costWith).toLocaleString()} грн`, 25, y); y += 6;
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(16, 185, 129);
-    doc.text(`Чиста вигода від впровадження СЕС: + ${Math.round(netBenefit).toLocaleString()} грн`, 20, y+5); y += 15;
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Впровадження сонячної електростанції дозволить заощадити`, 20, y); y += 6;
-    doc.text(`${Math.round(netBenefit/1000).toLocaleString()} тис. грн протягом 25 років експлуатації.`, 20, y); y += 6;
-    doc.text(`Строк окупності інвестиції складає ${payback.toFixed(1)} років.`, 20, y);
-    
-    // ========== СТОРІНКА 6: ПОРІВНЯННЯ СЦЕНАРІЇВ ==========
-    doc.addPage();
-    y = 20;
-    doc.setFontSize(14);
+    doc.setFontSize(11);
     doc.setTextColor(245, 158, 11);
-    doc.text("ПОРІВНЯННЯ СЦЕНАРІЇВ ВПРОВАДЖЕННЯ", pageWidth/2, y, { align: 'center' });
-    y = 45;
-    
-    const scenarios = [
-      "1. On-grid з обмеженням видачі - мінімальний CAPEX, найпростіше рішення",
-      "2. On-grid з продажем у мережу - додатковий дохід від надлишку електроенергії",
-      "3. СЕС + Батарея (BESS) - автономність до 4 годин, енергонезалежність",
-      "4. СЕС + Дизельний генератор - економія пального до 50%",
-      "5. СЕС + ДГ + Батарея (Комбо) - максимальна надійність, 24/7 резервування"
-    ];
+    doc.text("ПОРIВНЯННЯ: З СЕС vs БЕЗ СЕС", pageWidth/2, y, { align: 'center' });
+    y += 10;
     
     doc.setFontSize(9);
-    doc.setTextColor(60, 60, 60);
-    scenarios.forEach((s, i) => {
-      doc.text(s, 20, y + i * 8);
-    });
-    
-    y += 55;
-    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.text("Рекомендація:", 20, y); y += 6;
-    if (payback < 6) {
-      doc.text("✅ Проєкт має відмінні фінансові показники. Рекомендується до реалізації.", 25, y);
-    } else if (payback < 9) {
-      doc.text("📊 Проєкт має добрі показники. Рекомендується розгляд з урахуванням зелених тарифів.", 25, y);
-    } else {
-      doc.text("⚠️ Строк окупності перевищує 9 років. Рекомендується оптимізація CAPEX або розгляд гібридного рішення.", 25, y);
-    }
+    doc.text(`Витрати на електроенергiю за 25 рокiв:`, 20, y);
+    y += 6;
+    doc.text(`  • Без СЕС: ${Math.round(costWithout/1000).toLocaleString()} тис. грн`, 25, y);
+    y += 6;
+    doc.text(`  • З СЕС: ${Math.round(costWith/1000).toLocaleString()} тис. грн`, 25, y);
+    y += 8;
     
-    // ========== СТОРІНКА 7: CTA ТА ДИСКЛЕЙМЕР ==========
-    doc.addPage();
-    y = 40;
-    doc.setFontSize(16);
-    doc.setTextColor(245, 158, 11);
-    doc.text("НАСТУПНІ КРОКИ", pageWidth/2, y, { align: 'center' });
-    y += 20;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(16, 185, 129);
+    doc.text(`ЧИСТА ВИГОДА: + ${Math.round(netBenefit/1000).toLocaleString()} тис. грн`, pageWidth/2, y, { align: 'center' });
+    y += 12;
     
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Для отримання точної комерційної пропозиції:", 20, y); y += 10;
-    
-    doc.setFontSize(10);
-    doc.text("1️⃣ Замовте виїзне обстеження об'єкта", 25, y); y += 8;
-    doc.text("2️⃣ Отримайте детальний техніко-економічний розрахунок", 25, y); y += 8;
-    doc.text("3️⃣ Розрахуйте варіанти фінансування / енергосервісу", 25, y); y += 8;
-    doc.text("4️⃣ Підпишіть договір та розпочніть монтаж", 25, y); y += 15;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(8);
+    doc.text(`Впровадження СЕС дозволить заощадити ${Math.round(netBenefit/1000).toLocaleString()} тис. грн`, pageWidth/2, y, { align: 'center' });
+    y += 6;
+    doc.text(`протягом 25 рокiв. Строк окупностi — ${payback.toFixed(1)} рокiв.`, pageWidth/2, y, { align: 'center' });
     
     y += 15;
-    doc.setFontSize(10);
+    
+    // ========== РЕКОМЕНДАЦІЯ ==========
+    doc.setFontSize(9);
     doc.setTextColor(245, 158, 11);
-    doc.text("КОНТАКТИ", pageWidth/2, y, { align: 'center' });
-    y += 10;
-    doc.setTextColor(80, 80, 80);
-    doc.text("📞 +38 044 XXX XX XX", pageWidth/2, y, { align: 'center' }); y += 7;
-    doc.text("✉️ info@ses-calculator.com.ua", pageWidth/2, y, { align: 'center' }); y += 7;
-    doc.text("🌐 www.ses-calculator.com.ua", pageWidth/2, y, { align: 'center' }); y += 15;
+    doc.text("РЕКОМЕНДАЦIЯ", pageWidth/2, y, { align: 'center' });
+    y += 8;
+    doc.setTextColor(0, 0, 0);
     
-    doc.setFontSize(7);
+    let recommendation = "";
+    if (payback < 5) recommendation = "✅ Вiдмiннi показники. Проєкт рекомендується до реалiзацiї.";
+    else if (payback < 8) recommendation = "📊 Добрi показники. Рекомендується розгляд з урахуванням зелених тарифiв.";
+    else recommendation = "⚠️ Строк окупностi >8 рокiв. Рекомендується оптимiзацiя CAPEX.";
+    
+    doc.text(recommendation, pageWidth/2, y, { align: 'center' });
+    y += 20;
+    
+    // ========== КОНТАКТИ ТА ДИСКЛЕЙМЕР ==========
+    doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text("Дисклеймер: Розрахунок є попереднім та орієнтовним і не є комерційною пропозицією.", pageWidth/2, y, { align: 'center' });
-    doc.text("Точні технічні та фінансові параметри визначаються після виїзного обстеження об'єкта.", pageWidth/2, y+5, { align: 'center' });
-    doc.text("Похибка розрахунку може становити ±15-25%.", pageWidth/2, y+10, { align: 'center' });
+    doc.text("_________________________________________________________", pageWidth/2, y, { align: 'center' });
+    y += 8;
+    doc.text("📞 +38 044 XXX XX XX  |  ✉ info@ses-calculator.com.ua", pageWidth/2, y, { align: 'center' });
+    y += 6;
+    doc.text("Дисклеймер: Розрахунок є попереднiм та орiєнтовним.", pageWidth/2, y, { align: 'center' });
+    y += 5;
+    doc.text("Точнi параметри визначаються пiсля виїзного обстеження.", pageWidth/2, y, { align: 'center' });
     
-    // Збереження PDF
-    const filename = `SES_Report_${objName.replace(/[^a-zA-Zа-яА-ЯіїєґІЇЄҐ0-9]/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+    // ========== ЗБЕРЕЖЕННЯ ==========
+    const filename = `SES_Report_${objName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`;
     doc.save(filename);
     
   } catch (error) {
-    console.error('PDF generation error:', error);
-    alert('Помилка при генерації PDF: ' + error.message);
+    console.error('PDF Error:', error);
+    alert('Помилка: ' + error.message);
   } finally {
     loader.style.display = 'none';
     btn.innerHTML = originalText;
